@@ -1,4 +1,4 @@
-import { Github, Heart, Mail } from "lucide-react";
+import { Github, Heart, Twitter } from "lucide-react";
 
 export function Footer() {
   return (
@@ -92,11 +92,13 @@ export function Footer() {
                 <Github size={20} />
               </a>
               <a
-                href="mailto:contact@cubic-art.com"
+                href="https://x.com/baptiste_lechat"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="text-gray-400 hover:text-white transition-colors"
-                aria-label="Email"
+                aria-label="Twitter / X"
               >
-                <Mail size={20} />
+                <Twitter size={20} />
               </a>
             </div>
           </div>
