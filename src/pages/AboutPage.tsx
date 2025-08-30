@@ -15,7 +15,7 @@ export function AboutPage() {
         </div>
         
         {/* Mission */}
-        <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
+        <div className="bg-white rounded-xl shadow-lg p-8 mb-8 text-left">
           <div className="flex items-center space-x-3 mb-6">
             <Heart className="text-red-600" size={32} />
             <h2 className="text-2xl font-bold text-gray-900">Notre Mission</h2>
@@ -41,36 +41,36 @@ export function AboutPage() {
             <h2 className="text-2xl font-bold text-gray-900">Spécifications Techniques</h2>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
             <div className="space-y-4">
-              <div className="border-l-4 border-red-500 pl-4 text-left">
+              <div className="border-l-4 border-blue-500 pl-4">
                 <h3 className="font-semibold text-gray-900 mb-1">Plaque de base LEGO 3811</h3>
                 <p className="text-gray-600">Format fixe 32x32 (25,6 cm × 25,6 cm)</p>
               </div>
               
-              <div className="border-l-4 border-blue-500 pl-4 text-left">
+              <div className="border-l-4 border-blue-500 pl-4">
                 <h3 className="font-semibold text-gray-900 mb-1">Pièces 1x1 LEGO 3024</h3>
                 <p className="text-gray-600">Exactement 1024 pièces par mosaïque</p>
               </div>
               
-              <div className="border-l-4 border-green-500 pl-4 text-left">
+              <div className="border-l-4 border-blue-500 pl-4">
                 <h3 className="font-semibold text-gray-900 mb-1">Couleurs LEGO Officielles</h3>
                 <p className="text-gray-600">Palette LEGO officielle incluant les nouvelles teintes</p>
               </div>
             </div>
             
             <div className="space-y-4">
-              <div className="border-l-4 border-yellow-500 pl-4 text-left">
+              <div className="border-l-4 border-blue-500 pl-4">
                 <h3 className="font-semibold text-gray-900 mb-1">Algorithme ΔE</h3>
                 <p className="text-gray-600">Mapping couleur précis pour un rendu optimal</p>
               </div>
               
-              <div className="border-l-4 border-purple-500 pl-4 text-left">
+              <div className="border-l-4 border-blue-500 pl-4">
                 <h3 className="font-semibold text-gray-900 mb-1">Export Multiple</h3>
                 <p className="text-gray-600">PNG, SVG et liste JSON des pièces</p>
               </div>
               
-              <div className="border-l-4 border-indigo-500 pl-4 text-left">
+              <div className="border-l-4 border-blue-500 pl-4">
                 <h3 className="font-semibold text-gray-900 mb-1">Traitement Local</h3>
                 <p className="text-gray-600">Aucune donnée envoyée sur nos serveurs</p>
               </div>
@@ -79,7 +79,7 @@ export function AboutPage() {
         </div>
         
         {/* How it Works */}
-        <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
+        <div className="bg-white rounded-xl shadow-lg p-8 mb-8 text-left">
           <div className="flex items-center space-x-3 mb-6">
             <Zap className="text-yellow-600" size={32} />
             <h2 className="text-2xl font-bold text-gray-900">Comment ça fonctionne</h2>
@@ -87,10 +87,7 @@ export function AboutPage() {
           
           <div className="space-y-6">
             <div className="flex items-start space-x-4">
-              <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-sm">
-                1
-              </div>
-              <div>
+              <div className="border-l-4 border-yellow-500 pl-4">
                 <h3 className="font-semibold text-gray-900 mb-1">Redimensionnement intelligent</h3>
                 <p className="text-gray-600">
                   Votre image est automatiquement redimensionnée en 32x32 pixels avec 
@@ -100,10 +97,7 @@ export function AboutPage() {
             </div>
             
             <div className="flex items-start space-x-4">
-              <div className="w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center font-bold text-sm">
-                2
-              </div>
-              <div>
+              <div  className="border-l-4 border-yellow-500 pl-4">
                 <h3 className="font-semibold text-gray-900 mb-1">Analyse des couleurs</h3>
                 <p className="text-gray-600">
                   Chaque pixel est analysé et mappé vers la couleur LEGO la plus proche 
@@ -113,10 +107,8 @@ export function AboutPage() {
             </div>
             
             <div className="flex items-start space-x-4">
-              <div className="w-8 h-8 bg-red-600 text-white rounded-full flex items-center justify-center font-bold text-sm">
-                3
-              </div>
-              <div>
+
+              <div  className="border-l-4 border-yellow-500 pl-4">
                 <h3 className="font-semibold text-gray-900 mb-1">Génération de la grille</h3>
                 <p className="text-gray-600">
                   La mosaïque finale est générée avec les coordonnées exactes de chaque 
@@ -126,10 +118,7 @@ export function AboutPage() {
             </div>
             
             <div className="flex items-start space-x-4">
-              <div className="w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center font-bold text-sm">
-                4
-              </div>
-              <div>
+              <div  className="border-l-4 border-yellow-500 pl-4">
                 <h3 className="font-semibold text-gray-900 mb-1">Export et construction</h3>
                 <p className="text-gray-600">
                   Téléchargez votre mosaïque en haute résolution et la liste des pièces 
@@ -189,7 +178,7 @@ export function AboutPage() {
         </div>
         
         {/* Open Source */}
-        <div className="bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-xl shadow-lg p-8">
+        <div className="bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-xl shadow-lg p-8 text-left">
           <div className="flex items-center space-x-3 mb-6">
             <Github className="text-white" size={32} />
             <h2 className="text-2xl font-bold">Projet Open Source</h2>
@@ -202,7 +191,9 @@ export function AboutPage() {
           
           <div className="flex flex-col sm:flex-row gap-4">
             <a
-              href="https://github.com"
+              href="https://github.com/baptistelechat/cubic-art"
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex items-center space-x-2 bg-white text-gray-900 px-6 py-3 rounded-lg hover:bg-gray-100 transition-colors font-medium"
             >
               <Github size={20} />
