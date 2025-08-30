@@ -6,7 +6,7 @@ export function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Logo et description */}
-          <div className="space-y-4">
+          <div className="space-y-4 text-left">
             <div className="flex items-center space-x-2">
               <div className="w-6 h-6 bg-red-500 rounded-sm flex items-center justify-center">
                 <div className="w-3 h-3 bg-white rounded-sm"></div>
@@ -15,12 +15,12 @@ export function Footer() {
             </div>
             <p className="text-gray-400 text-sm">
               Transformez vos images en mosaïques LEGO avec notre générateur intelligent. 
-              Créez des œuvres d'art pixelisées uniques avec les 47 couleurs officielles LEGO.
+              Créez des œuvres d'art pixelisées uniques avec les couleurs officielles LEGO.
             </p>
           </div>
           
           {/* Liens rapides */}
-          <div className="space-y-4">
+          <div className="space-y-4 text-left">
             <h3 className="text-lg font-semibold">Liens rapides</h3>
             <ul className="space-y-2 text-sm">
               <li>
@@ -47,12 +47,12 @@ export function Footer() {
           </div>
           
           {/* Informations techniques */}
-          <div className="space-y-4">
+          <div className="space-y-4 text-left">
             <h3 className="text-lg font-semibold">Spécifications</h3>
             <ul className="space-y-2 text-sm text-gray-400">
-              <li>• Baseplate 32x32 (LEGO 3811)</li>
-              <li>• Plates 1x1 uniquement (LEGO 3024)</li>
-              <li>• 47 couleurs LEGO officielles</li>
+              <li>• Plaque de base 32x32 (LEGO 3811)</li>
+              <li>• Pièces 1x1 uniquement (LEGO 3024)</li>
+              <li>• Couleurs LEGO officielles</li>
               <li>• Export PNG, SVG, JSON</li>
               <li>• 1024 pièces par mosaïque</li>
             </ul>
@@ -88,7 +88,7 @@ export function Footer() {
           
           <div className="mt-4 text-center text-xs text-gray-500">
             <p>
-              © 2024 Cubic Art. Projet open source. 
+              © Cubic Art. Projet open source. 
               LEGO® est une marque déposée du groupe LEGO, qui ne parraine, n'autorise 
               ou n'approuve pas ce site.
             </p>

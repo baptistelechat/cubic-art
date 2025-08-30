@@ -116,7 +116,7 @@ export function GeneratorPage() {
     if (!mosaicResult) return;
     
     const data = {
-      baseplate: mosaicResult.baseplate,
+      plaqueDeBase: mosaicResult.plaqueDeBase,
       totalPieces: mosaicResult.totalPieces,
       piecesList: mosaicResult.piecesList,
       grid: mosaicResult.grid.map(row => 
@@ -144,7 +144,7 @@ export function GeneratorPage() {
             Générateur de mosaïques LEGO
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Uploadez votre image et transformez-la en mosaïque LEGO 32x32 avec les 47 couleurs officielles
+            Uploadez votre image et transformez-la en mosaïque LEGO 32x32 avec les couleurs officielles LEGO
           </p>
         </div>
         
@@ -290,7 +290,7 @@ export function GeneratorPage() {
             <div className="bg-white rounded-xl shadow-lg p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
                 <Palette size={24} className="text-red-600" />
-                <span>Palette LEGO (47 couleurs)</span>
+                <span>Palette LEGO officielle</span>
               </h3>
               
               <div className="grid grid-cols-8 gap-2">
@@ -305,7 +305,7 @@ export function GeneratorPage() {
               </div>
               
               <p className="text-sm text-gray-600 mt-3">
-                Affichage des 32 premières couleurs. La palette complète de 47 couleurs 
+                Affichage des 32 premières couleurs. La palette complète officielle LEGO 
                 est utilisée pour le mapping optimal.
               </p>
             </div>

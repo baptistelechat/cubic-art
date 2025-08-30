@@ -15,7 +15,7 @@ export function HomePage() {
             
             <p className="text-xl md:text-2xl text-white/90 max-w-3xl mx-auto">
               Créez des œuvres d'art pixelisées uniques avec notre générateur intelligent. 
-              Utilisez les 47 couleurs officielles LEGO sur une baseplate 32x32.
+              Utilisez les couleurs officielles LEGO sur une plaque de base 32x32.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -57,9 +57,9 @@ export function HomePage() {
               <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto">
                 <Palette className="w-8 h-8 text-red-600" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900">47 Couleurs LEGO</h3>
+              <h3 className="text-xl font-semibold text-gray-900">Couleurs LEGO Officielles</h3>
               <p className="text-gray-600">
-                Palette complète des couleurs officielles LEGO 2024, 
+                Palette complète des couleurs officielles LEGO, 
                 incluant les 3 nouvelles teintes.
               </p>
             </div>
@@ -71,7 +71,7 @@ export function HomePage() {
               </div>
               <h3 className="text-xl font-semibold text-gray-900">Format 32x32</h3>
               <p className="text-gray-600">
-                Baseplate standard LEGO 3811 avec 1024 plates 1x1 
+                Plaque de base standard LEGO avec 1024 pièces 1x1 
                 pour un résultat optimal.
               </p>
             </div>
@@ -81,9 +81,9 @@ export function HomePage() {
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
                 <Zap className="w-8 h-8 text-green-600" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900">Algorithme Delta E</h3>
+              <h3 className="text-xl font-semibold text-gray-900">Algorithme ΔE</h3>
               <p className="text-gray-600">
-                Mapping couleur précis utilisant la formule Delta E 
+                Mapping couleur précis utilisant la formule ΔE 
                 pour un rendu fidèle.
               </p>
             </div>
@@ -108,28 +108,28 @@ export function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-6">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 text-left">
                 Spécifications techniques
               </h2>
               
               <div className="space-y-4">
-                <div className="flex items-start space-x-3">
+                <div className="flex items-start space-x-3 text-left">
                   <div className="w-2 h-2 bg-red-500 rounded-full mt-2"></div>
                   <div>
-                    <h3 className="font-semibold text-gray-900">Baseplate LEGO 3811</h3>
-                    <p className="text-gray-600">Format fixe 32x32 studs pour une compatibilité parfaite</p>
+                    <h3 className="font-semibold text-gray-900">Plaque de base LEGO 3811</h3>
+                    <p className="text-gray-600">Format fixe 32x32 pour une compatibilité parfaite</p>
                   </div>
                 </div>
                 
-                <div className="flex items-start space-x-3">
+                <div className="flex items-start space-x-3 text-left">
                   <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
                   <div>
-                    <h3 className="font-semibold text-gray-900">Plates 1x1 LEGO 3024</h3>
+                    <h3 className="font-semibold text-gray-900">Pièces 1x1 LEGO 3024</h3>
                     <p className="text-gray-600">Exactement 1024 pièces par mosaïque</p>
                   </div>
                 </div>
                 
-                <div className="flex items-start space-x-3">
+                <div className="flex items-start space-x-3 text-left">
                   <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
                   <div>
                     <h3 className="font-semibold text-gray-900">Algorithme optimisé</h3>
@@ -137,7 +137,7 @@ export function HomePage() {
                   </div>
                 </div>
                 
-                <div className="flex items-start space-x-3">
+                <div className="flex items-start space-x-3 text-left">
                   <div className="w-2 h-2 bg-yellow-500 rounded-full mt-2"></div>
                   <div>
                     <h3 className="font-semibold text-gray-900">Export complet</h3>
