@@ -1,11 +1,10 @@
-import { useState } from 'react';
-import { Grid3X3, Download, Eye, Trash2 } from 'lucide-react';
+import { Grid3X3, Trash2 } from 'lucide-react';
 import { useGallery, useStore } from '@/hooks/useStore';
+import { Comparison, ComparisonItem, ComparisonHandle } from '@/components/ui/kibo-ui/comparison';
 
 export function GalleryPage() {
   const gallery = useGallery();
   const { removeFromGallery, clearGallery } = useStore();
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   
   // Images d'exemple pour la démonstration
   const exampleImages = [
@@ -52,79 +51,87 @@ export function GalleryPage() {
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
             Galerie de mosaïques LEGO
           </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <p className="text-xl text-gray-600 mx-auto">
             Découvrez des exemples de mosaïques créées avec Cubic Art et explorez les possibilités
           </p>
         </div>
         
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-xl shadow-lg p-6 text-center">
-            <div className="text-3xl font-bold text-blue-600 mb-2">{allImages.length}</div>
-            <div className="text-gray-600">Mosaïques créées</div>
-          </div>
-          <div className="bg-white rounded-xl shadow-lg p-6 text-center">
-            <div className="text-3xl font-bold text-green-600 mb-2">47</div>
-            <div className="text-gray-600">Couleurs LEGO</div>
-          </div>
-          <div className="bg-white rounded-xl shadow-lg p-6 text-center">
-            <div className="text-3xl font-bold text-red-600 mb-2">32×32</div>
-            <div className="text-gray-600">Format standard</div>
-          </div>
-        </div>
+
         
-        {/* Gallery Grid */}
+        {/* Gallery Grid - Nouvelle structure robuste */}
         {allImages.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {allImages.map((image) => (
               <div key={image.id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
+                {/* Comparison Container */}
                 <div className="aspect-square bg-gray-100 relative group">
-                  <img
-                    src={image.mosaicUrl}
-                    alt={image.name}
-                    className="w-full h-full object-cover"
-                    loading="lazy"
-                  />
+                  <Comparison className="w-full h-full rounded-t-xl overflow-hidden">
+                    <ComparisonItem position="left">
+                      <img
+                        src={image.mosaicUrl}
+                        alt={`Mosaïque - ${image.name}`}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          console.error('❌ Erreur chargement mosaïque:', image.mosaicUrl);
+                          const target = e.currentTarget as HTMLImageElement;
+                          target.style.backgroundColor = '#ef4444';
+                          target.style.color = 'white';
+                          target.style.display = 'flex';
+                          target.style.alignItems = 'center';
+                          target.style.justifyContent = 'center';
+                          target.style.fontSize = '12px';
+                          target.style.fontWeight = 'bold';
+                          target.innerHTML = '❌ MOSAÏQUE';
+                        }}
+                      />
+                    </ComparisonItem>
+                    <ComparisonItem position="right">
+                      <img
+                        src={image.originalUrl}
+                        alt={`Image originale - ${image.name}`}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          console.error('❌ Erreur chargement image originale:', image.originalUrl);
+                          const target = e.currentTarget as HTMLImageElement;
+                          target.style.backgroundColor = '#ef4444';
+                          target.style.color = 'white';
+                          target.style.display = 'flex';
+                          target.style.alignItems = 'center';
+                          target.style.justifyContent = 'center';
+                          target.style.fontSize = '12px';
+                          target.style.fontWeight = 'bold';
+                          target.innerHTML = '❌ ORIGINAL';
+                        }}
+                      />
+                    </ComparisonItem>
+                    <ComparisonHandle />
+                  </Comparison>
                   
-                  {/* Overlay */}
-                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-300 flex items-center justify-center">
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex space-x-3">
+                  {/* Bouton de suppression pour les images non-exemples */}
+                  {!image.id.startsWith('example-') && (
+                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                       <button
-                        onClick={() => setSelectedImage(image.mosaicUrl)}
-                        className="bg-white text-gray-900 p-3 rounded-full hover:bg-gray-100 transition-colors"
-                        title="Voir en grand"
+                        onClick={() => removeFromGallery(image.id)}
+                        className="bg-red-600 text-white p-2 rounded-full hover:bg-red-700 transition-colors shadow-lg"
+                        title="Supprimer"
                       >
-                        <Eye size={20} />
+                        <Trash2 size={16} />
                       </button>
-                      <button
-                        className="bg-blue-600 text-white p-3 rounded-full hover:bg-blue-700 transition-colors"
-                        title="Télécharger"
-                      >
-                        <Download size={20} />
-                      </button>
-                      {!image.id.startsWith('example-') && (
-                        <button
-                          onClick={() => removeFromGallery(image.id)}
-                          className="bg-red-600 text-white p-3 rounded-full hover:bg-red-700 transition-colors"
-                          title="Supprimer"
-                        >
-                          <Trash2 size={20} />
-                        </button>
-                      )}
                     </div>
-                  </div>
+                  )}
                 </div>
                 
+                {/* Informations de la mosaïque */}
                 <div className="p-4">
-                  <h3 className="font-semibold text-gray-900 mb-2">{image.name}</h3>
+                  <h3 className="font-semibold text-gray-900 mb-2 text-lg">{image.name}</h3>
                   <div className="flex items-center justify-between text-sm text-gray-600">
                     <div className="flex items-center space-x-1">
-                      <Grid3X3 size={16} />
-                      <span>{image.pieces} pièces</span>
+                      <Grid3X3 size={16} className="text-gray-900" />
+                      <span className="font-medium">{image.pieces} pièces</span>
                     </div>
                     <div className="flex items-center space-x-1">
-                      <div className="w-3 h-3 bg-gradient-to-r from-red-500 to-blue-500 rounded-full"></div>
-                      <span>{image.colors} couleurs</span>
+                      <div className="w-3 h-3 bg-gradient-to-r from-red-500 via-yellow-500 to-blue-500 rounded-full"></div>
+                      <span className="font-medium">{image.colors} couleurs</span>
                     </div>
                   </div>
                 </div>
@@ -132,22 +139,24 @@ export function GalleryPage() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-12">
-            <Grid3X3 size={64} className="mx-auto text-gray-400 mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+          <div className="text-center py-16 bg-white rounded-xl shadow-lg">
+            <Grid3X3 size={80} className="mx-auto text-gray-300 mb-6" />
+            <h3 className="text-2xl font-bold text-gray-900 mb-3">
               Aucune mosaïque dans votre galerie
             </h3>
-            <p className="text-gray-600 mb-6">
-              Créez votre première mosaïque LEGO avec le générateur
+            <p className="text-gray-600 mb-8 text-lg max-w-md mx-auto">
+              Créez votre première mosaïque LEGO avec notre générateur intelligent
             </p>
             <a
               href="/generator"
-              className="inline-flex items-center space-x-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+              className="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
             >
-              <span>Créer une mosaïque</span>
+              <Grid3X3 size={20} />
+              <span className="font-semibold">Créer une mosaïque</span>
             </a>
           </div>
         )}
+
         
         {/* Clear Gallery Button */}
         {gallery.length > 0 && (
@@ -162,21 +171,7 @@ export function GalleryPage() {
         )}
       </div>
       
-      {/* Modal pour voir l'image en grand */}
-      {selectedImage && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4"
-          onClick={() => setSelectedImage(null)}
-        >
-          <div className="max-w-4xl max-h-full">
-            <img
-              src={selectedImage}
-              alt="Mosaïque en grand"
-              className="max-w-full max-h-full object-contain rounded-lg"
-            />
-          </div>
-        </div>
-      )}
+
     </div>
   );
 }

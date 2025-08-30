@@ -1,4 +1,4 @@
-import { Heart, Github, Mail } from 'lucide-react';
+import { Github, Heart, Mail } from "lucide-react";
 
 export function Footer() {
   return (
@@ -14,38 +14,51 @@ export function Footer() {
               <span className="text-lg font-bold">Cubic Art</span>
             </div>
             <p className="text-gray-400 text-sm">
-              Transformez vos images en mosaïques LEGO avec notre générateur intelligent. 
-              Créez des œuvres d'art pixelisées uniques avec les couleurs officielles LEGO.
+              Transformez vos images en mosaïques LEGO avec notre générateur
+              intelligent. Créez des œuvres d'art pixelisées uniques avec les
+              couleurs officielles LEGO.
             </p>
           </div>
-          
+
           {/* Liens rapides */}
           <div className="space-y-4 text-left">
             <h3 className="text-lg font-semibold">Liens rapides</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <a href="/generator" className="text-gray-400 hover:text-white transition-colors">
+                <a
+                  href="/generator"
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
                   Générateur de mosaïques
                 </a>
               </li>
               <li>
-                <a href="/gallery" className="text-gray-400 hover:text-white transition-colors">
+                <a
+                  href="/gallery"
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
                   Galerie d'exemples
                 </a>
               </li>
               <li>
-                <a href="/about" className="text-gray-400 hover:text-white transition-colors">
+                <a
+                  href="/about"
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
                   À propos du projet
                 </a>
               </li>
               <li>
-                <a href="/contact" className="text-gray-400 hover:text-white transition-colors">
+                <a
+                  href="/contact"
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
                   Nous contacter
                 </a>
               </li>
             </ul>
           </div>
-          
+
           {/* Informations techniques */}
           <div className="space-y-4 text-left">
             <h3 className="text-lg font-semibold">Spécifications</h3>
@@ -58,7 +71,7 @@ export function Footer() {
             </ul>
           </div>
         </div>
-        
+
         {/* Séparateur */}
         <div className="border-t border-gray-800 mt-8 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
@@ -67,17 +80,17 @@ export function Footer() {
               <Heart size={16} className="text-red-500" />
               <span>pour la communauté LEGO</span>
             </div>
-            
+
             <div className="flex items-center space-x-4">
-              <a 
-                href="https://github.com" 
+              <a
+                href="https://github.com"
                 className="text-gray-400 hover:text-white transition-colors"
                 aria-label="GitHub"
               >
                 <Github size={20} />
               </a>
-              <a 
-                href="mailto:contact@cubic-art.com" 
+              <a
+                href="mailto:contact@cubic-art.com"
                 className="text-gray-400 hover:text-white transition-colors"
                 aria-label="Email"
               >
@@ -85,12 +98,12 @@ export function Footer() {
               </a>
             </div>
           </div>
-          
+
           <div className="mt-4 text-center text-xs text-gray-500">
             <p>
-              © Cubic Art. Projet open source. 
-              LEGO® est une marque déposée du groupe LEGO, qui ne parraine, n'autorise 
-              ou n'approuve pas ce site.
+              © Cubic Art. Projet open source. LEGO® est une marque déposée du
+              groupe LEGO, qui ne parraine, n'autorise ou n'approuve pas ce
+              site.
             </p>
           </div>
         </div>
