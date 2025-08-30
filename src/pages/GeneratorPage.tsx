@@ -1,5 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { Upload, Download, Image as ImageIcon, Palette, Grid3X3, Clock } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { useStore } from '@/hooks/useStore';
 import { processImageToMosaic, generateMosaicPreview } from '@/utils/imageProcessor';
 import type { MosaicResult } from '@/types';
@@ -151,11 +153,14 @@ export function GeneratorPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Upload Section */}
           <div className="space-y-6">
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center space-x-2">
-                <Upload size={24} className="text-blue-600" />
-                <span>Sélectionner une image</span>
-              </h2>
+            <Card>
+              <CardHeader>
+                <h2 className="text-xl font-semibold text-gray-900 flex items-center space-x-2">
+                  <Upload size={24} className="text-blue-600" />
+                  <span>Sélectionner une image</span>
+                </h2>
+              </CardHeader>
+              <CardContent>
               
               {/* Drop Zone */}
               <div
@@ -176,58 +181,68 @@ export function GeneratorPage() {
                 <p className="text-gray-500 mb-4">
                   ou cliquez pour parcourir vos fichiers
                 </p>
-                <button className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                <Button className="bg-blue-600 hover:bg-blue-700">
                   Choisir un fichier
-                </button>
+                </Button>
               </div>
               
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleFileInputChange}
-                className="hidden"
-              />
-            </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileInputChange}
+                  className="hidden"
+                />
+              </CardContent>
+            </Card>
             
             {/* Original Image Preview */}
             {previewUrl && (
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Image originale</h3>
-                <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
-                  <img
-                    src={previewUrl}
-                    alt="Image originale"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              </div>
+              <Card>
+                <CardHeader>
+                  <h3 className="text-lg font-semibold text-gray-900">Image originale</h3>
+                </CardHeader>
+                <CardContent>
+                  <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                    <img
+                      src={previewUrl}
+                      alt="Image originale"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
             )}
           </div>
           
           {/* Result Section */}
           <div className="space-y-6">
             {isProcessing && (
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <div className="flex items-center space-x-3 mb-4">
-                  <Clock size={24} className="text-blue-600 animate-spin" />
-                  <h3 className="text-lg font-semibold text-gray-900">Traitement en cours...</h3>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div className="bg-blue-600 h-2 rounded-full animate-pulse" style={{ width: '60%' }}></div>
-                </div>
-                <p className="text-sm text-gray-600 mt-2">
-                  Redimensionnement et mapping des couleurs LEGO...
-                </p>
-              </div>
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex items-center space-x-3 mb-4">
+                    <Clock size={24} className="text-blue-600 animate-spin" />
+                    <h3 className="text-lg font-semibold text-gray-900">Traitement en cours...</h3>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="bg-blue-600 h-2 rounded-full animate-pulse" style={{ width: '60%' }}></div>
+                  </div>
+                  <p className="text-sm text-gray-600 mt-2">
+                    Redimensionnement et mapping des couleurs LEGO...
+                  </p>
+                </CardContent>
+              </Card>
             )}
             
             {mosaicResult && mosaicCanvas && (
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
-                  <Grid3X3 size={24} className="text-green-600" />
-                  <span>Mosaïque LEGO 32x32</span>
-                </h3>
+              <Card>
+                <CardHeader>
+                  <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
+                    <Grid3X3 size={24} className="text-green-600" />
+                    <span>Mosaïque LEGO 32x32</span>
+                  </h3>
+                </CardHeader>
+                <CardContent>
                 
                 <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-4">
                   <canvas
@@ -257,58 +272,62 @@ export function GeneratorPage() {
                   </div>
                 </div>
                 
-                {/* Download Buttons */}
-                <div className="space-y-3">
-                  <button
-                    onClick={downloadPNG}
-                    className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"
-                  >
-                    <Download size={20} />
-                    <span>Télécharger PNG</span>
-                  </button>
-                  
-                  <button
-                    onClick={downloadSVG}
-                    className="w-full bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center space-x-2"
-                  >
-                    <Download size={20} />
-                    <span>Télécharger SVG</span>
-                  </button>
-                  
-                  <button
-                    onClick={downloadJSON}
-                    className="w-full bg-purple-600 text-white py-3 px-4 rounded-lg hover:bg-purple-700 transition-colors flex items-center justify-center space-x-2"
-                  >
-                    <Download size={20} />
-                    <span>Liste des pièces (JSON)</span>
-                  </button>
-                </div>
-              </div>
+                  {/* Download Buttons */}
+                  <div className="space-y-3">
+                    <Button
+                      onClick={downloadPNG}
+                      className="w-full bg-blue-600 hover:bg-blue-700 py-3 flex items-center justify-center space-x-2"
+                    >
+                      <Download size={20} />
+                      <span>Télécharger PNG</span>
+                    </Button>
+                    
+                    <Button
+                      onClick={downloadSVG}
+                      className="w-full bg-green-600 hover:bg-green-700 py-3 flex items-center justify-center space-x-2"
+                    >
+                      <Download size={20} />
+                      <span>Télécharger SVG</span>
+                    </Button>
+                    
+                    <Button
+                      onClick={downloadJSON}
+                      className="w-full bg-purple-600 hover:bg-purple-700 py-3 flex items-center justify-center space-x-2"
+                    >
+                      <Download size={20} />
+                      <span>Liste des pièces (JSON)</span>
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
             )}
             
             {/* Color Palette Info */}
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
-                <Palette size={24} className="text-red-600" />
-                <span>Palette LEGO officielle</span>
-              </h3>
-              
-              <div className="grid grid-cols-8 gap-2">
-                {config.colorPalette.slice(0, 32).map((color) => (
-                  <div
-                    key={color.id}
-                    className="w-8 h-8 rounded border border-gray-200"
-                    style={{ backgroundColor: color.hex }}
-                    title={color.name}
-                  ></div>
-                ))}
-              </div>
-              
-              <p className="text-sm text-gray-600 mt-3">
-                Affichage des 32 premières couleurs. La palette complète officielle LEGO 
-                est utilisée pour le mapping optimal.
-              </p>
-            </div>
+            <Card>
+              <CardHeader>
+                <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
+                  <Palette size={24} className="text-red-600" />
+                  <span>Palette LEGO officielle</span>
+                </h3>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-8 gap-2">
+                  {config.colorPalette.slice(0, 32).map((color) => (
+                    <div
+                      key={color.id}
+                      className="w-8 h-8 rounded border border-gray-200"
+                      style={{ backgroundColor: color.hex }}
+                      title={color.name}
+                    ></div>
+                  ))}
+                </div>
+                
+                <p className="text-sm text-gray-600 mt-3">
+                  Affichage des 32 premières couleurs. La palette complète officielle LEGO 
+                  est utilisée pour le mapping optimal.
+                </p>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
