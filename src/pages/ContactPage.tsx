@@ -181,7 +181,7 @@ export function ContactPage() {
                 </a>
                 
                 <a
-                  href="https://github.com"
+                  href="https://github.com/baptistelechat/cubic-art"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group"
