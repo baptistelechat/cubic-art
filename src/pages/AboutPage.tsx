@@ -43,34 +43,34 @@ export function AboutPage() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
-              <div className="border-l-4 border-red-500 pl-4">
-                <h3 className="font-semibold text-gray-900 mb-1">Baseplate LEGO 3811</h3>
-                <p className="text-gray-600">Format fixe 32x32 studs (25,6 cm × 25,6 cm)</p>
+              <div className="border-l-4 border-red-500 pl-4 text-left">
+                <h3 className="font-semibold text-gray-900 mb-1">Plaque de base LEGO 3811</h3>
+                <p className="text-gray-600">Format fixe 32x32 (25,6 cm × 25,6 cm)</p>
               </div>
               
-              <div className="border-l-4 border-blue-500 pl-4">
-                <h3 className="font-semibold text-gray-900 mb-1">Plates 1x1 LEGO 3024</h3>
+              <div className="border-l-4 border-blue-500 pl-4 text-left">
+                <h3 className="font-semibold text-gray-900 mb-1">Pièces 1x1 LEGO 3024</h3>
                 <p className="text-gray-600">Exactement 1024 pièces par mosaïque</p>
               </div>
               
-              <div className="border-l-4 border-green-500 pl-4">
-                <h3 className="font-semibold text-gray-900 mb-1">47 Couleurs Officielles</h3>
-                <p className="text-gray-600">Palette LEGO 2024 incluant les nouvelles teintes</p>
+              <div className="border-l-4 border-green-500 pl-4 text-left">
+                <h3 className="font-semibold text-gray-900 mb-1">Couleurs LEGO Officielles</h3>
+                <p className="text-gray-600">Palette LEGO officielle incluant les nouvelles teintes</p>
               </div>
             </div>
             
             <div className="space-y-4">
-              <div className="border-l-4 border-yellow-500 pl-4">
-                <h3 className="font-semibold text-gray-900 mb-1">Algorithme Delta E</h3>
+              <div className="border-l-4 border-yellow-500 pl-4 text-left">
+                <h3 className="font-semibold text-gray-900 mb-1">Algorithme ΔE</h3>
                 <p className="text-gray-600">Mapping couleur précis pour un rendu optimal</p>
               </div>
               
-              <div className="border-l-4 border-purple-500 pl-4">
+              <div className="border-l-4 border-purple-500 pl-4 text-left">
                 <h3 className="font-semibold text-gray-900 mb-1">Export Multiple</h3>
                 <p className="text-gray-600">PNG, SVG et liste JSON des pièces</p>
               </div>
               
-              <div className="border-l-4 border-indigo-500 pl-4">
+              <div className="border-l-4 border-indigo-500 pl-4 text-left">
                 <h3 className="font-semibold text-gray-900 mb-1">Traitement Local</h3>
                 <p className="text-gray-600">Aucune donnée envoyée sur nos serveurs</p>
               </div>
@@ -107,7 +107,7 @@ export function AboutPage() {
                 <h3 className="font-semibold text-gray-900 mb-1">Analyse des couleurs</h3>
                 <p className="text-gray-600">
                   Chaque pixel est analysé et mappé vers la couleur LEGO la plus proche 
-                  en utilisant l'algorithme Delta E pour une précision maximale.
+                  en utilisant l'algorithme ΔE pour une précision maximale.
                 </p>
               </div>
             </div>

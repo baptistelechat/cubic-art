@@ -91,17 +91,17 @@ function generatePiecesList(legoGrid: LegoColor[][]): Record<string, number> {
   return piecesList;
 }
 
-// Génère les coordonnées des plates
-function generatePlatesCoordinates(legoGrid: LegoColor[][]): Array<{x: number, y: number, color: LegoColor}> {
-  const plates: Array<{x: number, y: number, color: LegoColor}> = [];
+// Génère les coordonnées des pièces
+function generatePiecesCoordinates(legoGrid: LegoColor[][]): Array<{x: number, y: number, color: LegoColor}> {
+  const pieces: Array<{x: number, y: number, color: LegoColor}> = [];
   
   legoGrid.forEach((row, y) => {
     row.forEach((color, x) => {
-      plates.push({ x, y, color });
+      pieces.push({ x, y, color });
     });
   });
   
-  return plates;
+  return pieces;
 }
 
 // Fonction principale de traitement d'image
@@ -127,7 +127,7 @@ export async function processImageToMosaic(
         const legoGrid = mapToLegoColors(rgbGrid);
         
         // 4. Génération des données de résultat
-        const plates = generatePlatesCoordinates(legoGrid);
+        const pieces = generatePiecesCoordinates(legoGrid);
         const piecesList = generatePiecesList(legoGrid);
         const processingTime = performance.now() - startTime;
         
@@ -148,8 +148,8 @@ export async function processImageToMosaic(
           grid: legoGrid,
           exportFormats: ['png', 'svg', 'json'],
           processingTime,
-          plates,
-          baseplate: {
+          pieces,
+          plaqueDeBase: {
             ref: 'LEGO 3811',
             size: '32x32'
           },

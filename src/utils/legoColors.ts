@@ -1,6 +1,6 @@
 import type { LegoColor } from '@/types';
 
-// Palette complète des 47 couleurs LEGO officielles (2024)
+// Palette complète des couleurs LEGO officielles
 export const LEGO_COLORS: LegoColor[] = [
   // Couleurs neutres
   { id: 1, name: 'White', hex: '#FFFFFF', rgb: [255, 255, 255] },
@@ -28,7 +28,7 @@ export const LEGO_COLORS: LegoColor[] = [
   { id: 168, name: 'Umber', hex: '#6A4C36', rgb: [106, 76, 54] },
   { id: 169, name: 'Sienna', hex: '#915C3C', rgb: [145, 92, 60] },
   
-  // Nouvelles couleurs 2024
+  // Nouvelles couleurs récentes
   { id: 167, name: 'Reddish Orange', hex: '#CA4C0B', rgb: [202, 76, 11] },
   
   // Couleurs vertes
