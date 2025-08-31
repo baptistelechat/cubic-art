@@ -1,4 +1,5 @@
 import { Github, Heart, Twitter } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export function Footer() {
   return (
@@ -25,36 +26,36 @@ export function Footer() {
             <h3 className="text-lg font-semibold">Liens rapides</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <a
-                  href="/generator"
+                <Link
+                  to="/generator"
                   className="text-gray-400 hover:text-white transition-colors"
                 >
                   Générateur de mosaïques
-                </a>
+                </Link>
               </li>
               <li>
-                <a
-                  href="/gallery"
+                <Link
+                  to="/gallery"
                   className="text-gray-400 hover:text-white transition-colors"
                 >
                   Galerie d'exemples
-                </a>
+                </Link>
               </li>
               <li>
-                <a
-                  href="/about"
+                <Link
+                  to="/about"
                   className="text-gray-400 hover:text-white transition-colors"
                 >
                   À propos du projet
-                </a>
+                </Link>
               </li>
               <li>
-                <a
-                  href="/contact"
+                <Link
+                  to="/contact"
                   className="text-gray-400 hover:text-white transition-colors"
                 >
                   Nous contacter
-                </a>
+                </Link>
               </li>
             </ul>
           </div>

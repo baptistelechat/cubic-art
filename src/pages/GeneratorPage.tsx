@@ -29,12 +29,57 @@ export function GeneratorPage() {
   const [dragActive, setDragActive] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [mosaicCanvas, setMosaicCanvas] = useState<HTMLCanvasElement | null>(null);
+  const [error, setError] = useState<string | null>(null);
   
   const { config, isProcessing, mosaicResult, setIsProcessing, setMosaicResult } = useStore();
   
-  const handleFileSelect = async (file: File) => {
+  // Constantes pour les limites
+  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 Mo en bytes
+  const MAX_IMAGE_DIMENSION = 4000; // 4000x4000 pixels
+  
+  // Fonction de validation des fichiers
+  const validateFile = async (file: File): Promise<{ isValid: boolean; error?: string }> => {
+    // Validation du type de fichier
     if (!file.type.startsWith('image/')) {
-      alert('Veuillez sélectionner un fichier image valide.');
+      return { isValid: false, error: 'Veuillez sélectionner un fichier image valide.' };
+    }
+    
+    // Validation de la taille du fichier
+    if (file.size > MAX_FILE_SIZE) {
+      const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
+      return { isValid: false, error: `Le fichier est trop volumineux (${sizeMB} Mo). La taille maximale autorisée est de 10 Mo.` };
+    }
+    
+    // Validation des dimensions de l'image
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        if (img.width > MAX_IMAGE_DIMENSION || img.height > MAX_IMAGE_DIMENSION) {
+          resolve({ 
+            isValid: false, 
+            error: `Les dimensions de l'image sont trop importantes (${img.width}x${img.height}). Les dimensions maximales autorisées sont de ${MAX_IMAGE_DIMENSION}x${MAX_IMAGE_DIMENSION} pixels.` 
+          });
+        } else {
+          resolve({ isValid: true });
+        }
+        URL.revokeObjectURL(img.src);
+      };
+      img.onerror = () => {
+        resolve({ isValid: false, error: 'Impossible de lire les dimensions de l\'image.' });
+        URL.revokeObjectURL(img.src);
+      };
+      img.src = URL.createObjectURL(file);
+    });
+  };
+  
+  const handleFileSelect = async (file: File) => {
+    // Réinitialiser l'erreur précédente
+    setError(null);
+    
+    // Validation du fichier
+    const validation = await validateFile(file);
+    if (!validation.isValid) {
+      setError(validation.error!);
       return;
     }
     
@@ -58,7 +103,7 @@ export function GeneratorPage() {
       
     } catch (error) {
       console.error('Erreur lors du traitement:', error);
-      alert('Erreur lors du traitement de l\'image. Veuillez réessayer.');
+      setError('Erreur lors du traitement de l\'image. Veuillez réessayer.');
       setIsProcessing(false);
     }
   };
@@ -195,6 +240,38 @@ export function GeneratorPage() {
                 />
               </CardContent>
             </Card>
+            
+            {/* Error Message */}
+            {error && (
+              <Card className="border-red-200 bg-red-50">
+                <CardContent className="pt-6">
+                  <div className="flex items-center space-x-3">
+                    <div className="flex-shrink-0">
+                      <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-red-800">
+                        {error}
+                      </p>
+                    </div>
+                    <div className="flex-shrink-0">
+                      <button
+                        type="button"
+                        className="inline-flex rounded-md bg-red-50 p-1.5 text-red-500 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2 focus:ring-offset-red-50"
+                        onClick={() => setError(null)}
+                      >
+                        <span className="sr-only">Fermer</span>
+                        <svg className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
             
             {/* Original Image Preview */}
             {previewUrl && (
