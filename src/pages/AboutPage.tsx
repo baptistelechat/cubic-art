@@ -1,4 +1,5 @@
 import { Grid3X3, Palette, Zap, Github, Heart } from 'lucide-react';
+import { Button } from "@/components/ui/button";
 
 export function AboutPage() {
   return (
@@ -190,22 +191,31 @@ export function AboutPage() {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4">
-            <a
-              href="https://github.com/baptistelechat/cubic-art"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center space-x-2 bg-white text-gray-900 px-6 py-3 rounded-lg hover:bg-gray-100 transition-colors font-medium"
+            <Button
+              asChild
+              variant="cta-dark"
+              size="cta"
             >
-              <Github size={20} />
-              <span>Voir sur GitHub</span>
-            </a>
+              <a
+                href="https://github.com/baptistelechat/cubic-art"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex gap-2 items-center justify-center"
+              >
+                <Github size={20} />
+                <span>Voir sur GitHub</span>
+              </a>
+            </Button>
             
-            <a
-              href="/contact"
-              className="inline-flex items-center space-x-2 border-2 border-white text-white px-6 py-3 rounded-lg hover:bg-white hover:text-gray-900 transition-colors font-medium"
+            <Button
+              asChild
+              variant="cta-dark-outline"
+              size="cta"
             >
-              <span>Contribuer au projet</span>
-            </a>
+              <a href="/contact">
+                <span>Contribuer au projet</span>
+              </a>
+            </Button>
           </div>
         </div>
         

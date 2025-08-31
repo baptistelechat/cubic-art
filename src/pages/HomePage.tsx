@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowRight, Download, Grid3X3, Palette, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -21,20 +22,23 @@ export function HomePage() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Link
-                to="/generator"
-                className="inline-flex items-center space-x-2 bg-white text-red-600 px-6 py-3 rounded-lg hover:bg-gray-100 transition-colors font-medium shadow-lg"
-              >
-                <Zap size={20} />
-                <span>Commencer maintenant</span>
-                <ArrowRight size={20} />
+              <Link to="/generator">
+                <Button asChild variant="cta-primary" size="cta">
+                  <Zap size={32} />
+                  <span>Commencer maintenant</span>
+                  <ArrowRight size={32} />
+                </Button>
               </Link>
 
-              <Link
-                to="/gallery"
-                className="inline-flex items-center space-x-2 border-2 border-white text-white px-6 py-3 rounded-lg hover:bg-white hover:text-red-600 transition-colors font-medium"
-              >
-                <span>Voir des exemples</span>
+              <Link to="/gallery">
+                <Button
+                  asChild
+                  variant="cta-outline"
+                  size="cta"
+                  className="hover:cursor-pointer"
+                >
+                  <span>Voir des exemples</span>
+                </Button>
               </Link>
             </div>
           </div>
@@ -218,13 +222,12 @@ export function HomePage() {
             quelques secondes, obtenez votre mosaïque et la liste des pièces
             nécessaires.
           </p>
-          <Link
-            to="/generator"
-            className="inline-flex items-center space-x-2 bg-white text-red-600 px-6 py-3 rounded-lg hover:bg-gray-100 transition-colors font-medium shadow-lg"
-          >
-            <Zap size={20} />
-            <span>Commencer maintenant</span>
-            <ArrowRight size={20} />
+          <Link to="/generator">
+            <Button asChild variant="cta-primary" size="cta">
+              <Zap size={32} />
+              <span>Commencer maintenant</span>
+              <ArrowRight size={32} />
+            </Button>
           </Link>
         </div>
       </section>
