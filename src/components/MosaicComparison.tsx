@@ -1,27 +1,31 @@
-'use client';
+"use client";
 
-import { useEffect, useRef } from 'react';
-import { Trash2, Grid3X3 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Comparison, ComparisonItem, ComparisonHandle } from '@/components/ui/kibo-ui/comparison';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Comparison,
+  ComparisonHandle,
+  ComparisonItem,
+} from "@/components/ui/kibo-ui/comparison";
+import { Grid3X3, Trash2 } from "lucide-react";
+import { useEffect, useRef } from "react";
 
 interface MosaicComparisonProps {
   // Image source (original)
   originalImage: string;
-  
+
   // Mosaic data - either canvas or image URL
   mosaicCanvas?: HTMLCanvasElement;
   mosaicImageUrl?: string;
-  
+
   // Statistics
   pieceCount?: number;
   colorCount?: number;
-  
+
   // Optional actions
   onDelete?: () => void;
   showDeleteButton?: boolean;
-  
+
   // Custom styling
   className?: string;
   aspectRatio?: string;
@@ -35,8 +39,8 @@ export function MosaicComparison({
   colorCount,
   onDelete,
   showDeleteButton = false,
-  className = '',
-  aspectRatio = 'aspect-square'
+  className = "",
+  aspectRatio = "aspect-square",
 }: MosaicComparisonProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -45,42 +49,36 @@ export function MosaicComparison({
     if (!mosaicCanvas || !canvasRef.current) return;
 
     const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
     // Get device pixel ratio for sharp rendering
     const devicePixelRatio = window.devicePixelRatio || 1;
-    
+
     // Calculate display size
     const displayWidth = canvas.offsetWidth;
     const displayHeight = canvas.offsetHeight;
-    
+
     // Calculate actual canvas size
     const canvasWidth = displayWidth * devicePixelRatio;
     const canvasHeight = displayHeight * devicePixelRatio;
-    
+
     // Set actual canvas size
     canvas.width = canvasWidth;
     canvas.height = canvasHeight;
-    
+
     // Set CSS size
     canvas.style.width = `${displayWidth}px`;
     canvas.style.height = `${displayHeight}px`;
-    
+
     // Scale context for high DPI
     ctx.scale(devicePixelRatio, devicePixelRatio);
-    
+
     // Disable image smoothing for crisp pixel art
     ctx.imageSmoothingEnabled = false;
-    
+
     // Draw the mosaic canvas
-    ctx.drawImage(
-      mosaicCanvas,
-      0,
-      0,
-      displayWidth,
-      displayHeight
-    );
+    ctx.drawImage(mosaicCanvas, 0, 0, displayWidth, displayHeight);
   }, [mosaicCanvas]);
 
   return (
@@ -95,14 +93,14 @@ export function MosaicComparison({
                 <canvas
                   ref={canvasRef}
                   className="h-full w-full object-cover"
-                  style={{ imageRendering: 'pixelated' }}
+                  style={{ imageRendering: "pixelated" }}
                 />
               ) : mosaicImageUrl ? (
                 <img
                   src={mosaicImageUrl}
                   alt="Mosaïque LEGO"
                   className="h-full w-full object-cover"
-                  style={{ imageRendering: 'pixelated' }}
+                  style={{ imageRendering: "pixelated" }}
                 />
               ) : (
                 <div className="flex h-full w-full items-center justify-center bg-muted">
@@ -110,7 +108,7 @@ export function MosaicComparison({
                 </div>
               )}
             </ComparisonItem>
-            
+
             {/* Original Image */}
             <ComparisonItem position="right">
               <img
@@ -119,10 +117,10 @@ export function MosaicComparison({
                 className="h-full w-full object-cover"
               />
             </ComparisonItem>
-            
+
             <ComparisonHandle />
           </Comparison>
-          
+
           {/* Delete Button */}
           {showDeleteButton && onDelete && (
             <Button
@@ -135,7 +133,7 @@ export function MosaicComparison({
             </Button>
           )}
         </div>
-        
+
         {/* Statistics Section */}
         {(pieceCount !== undefined || colorCount !== undefined) && (
           <div className="p-4">
