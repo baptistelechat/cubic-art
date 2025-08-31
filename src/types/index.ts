@@ -19,9 +19,9 @@ export interface LegoColor {
 
 // Configuration de la mosaïque
 export interface MosaicConfig {
-  size: 32; // Fixe - baseplate 32x32 (réf. LEGO 3811)
-  colorPalette: LegoColor[]; // 47 couleurs LEGO officielles
-  brickType: '1x1'; // Plates 1x1 uniquement (réf. LEGO 3024)
+  size: 32; // Fixe - plaque de base 32x32 (réf. LEGO 3811)
+  colorPalette: LegoColor[]; // Couleurs LEGO officielles
+  brickType: '1x1'; // Pièces 1x1 uniquement (réf. LEGO 3024)
 }
 
 // Résultat de la transformation
@@ -31,8 +31,8 @@ export interface MosaicResult {
   grid: LegoColor[][];
   exportFormats: ('png' | 'svg' | 'json')[];
   processingTime: number;
-  plates: Array<{x: number, y: number, color: LegoColor}>;
-  baseplate: { ref: string, size: string };
+  pieces: Array<{x: number, y: number, color: LegoColor}>;
+  plaqueDeBase: { ref: string, size: string };
   totalPieces: number;
   piecesList: Record<string, number>;
 }
