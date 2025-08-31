@@ -19,9 +19,9 @@ export interface LegoColor {
 
 // Configuration de la mosaïque
 export interface MosaicConfig {
-  size: 32; // Fixe - plaque de base 32x32 (réf. LEGO 3811)
+  size: 16 | 32 | 48 | 64; // Tailles modulaires supportées
   colorPalette: LegoColor[]; // Couleurs LEGO officielles
-  brickType: '1x1'; // Pièces 1x1 uniquement (réf. LEGO 3024)
+  brickType: '1x1'; // Type de brique LEGO pour les pixels
 }
 
 // Résultat de la transformation
@@ -32,9 +32,29 @@ export interface MosaicResult {
   exportFormats: ('png' | 'svg' | 'json')[];
   processingTime: number;
   pieces: Array<{x: number, y: number, color: LegoColor}>;
-  plaqueDeBase: { ref: string, size: string };
+  colors?: LegoColor[];
+  colorCount?: Record<string, number>;
+  modularElements?: {
+    brickTechnic16x16: {
+      reference: string; // LEGO Technic Brick 16x16 (réf. 65803)
+      quantity: number;
+    };
+    connectorTechnic: {
+      reference: string; // LEGO Technic Connector Peg (réf. 61332)
+      quantity: number;
+    };
+    plates1x1: {
+      reference: string; // LEGO Plate 1x1 (réf. 3024)
+      quantity: number;
+    };
+  };
+  plaqueDeBase?: {
+    ref: string;
+    size: string;
+  };
   totalPieces: number;
-  piecesList: Record<string, number>;
+  piecesList?: Record<string, number>;
+  gridSize?: number;
 }
 
 // État de l'application

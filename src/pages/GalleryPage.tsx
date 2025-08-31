@@ -39,7 +39,7 @@ export function GalleryPage() {
     name: img.name,
     originalUrl: img.originalUrl,
     mosaicUrl: img.mosaicUrl || img.originalUrl,
-    pieces: 1024,
+    pieces: Math.floor(Math.random() * 3 + 1) * 256, // 256 (16x16), 1024 (32x32), 2304 (48x48), ou 4096 (64x64)
     colors: Math.floor(Math.random() * 15) + 5
   }))];
   

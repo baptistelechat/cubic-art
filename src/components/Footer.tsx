@@ -64,11 +64,13 @@ export function Footer() {
           <div className="space-y-4 text-left">
             <h3 className="text-lg font-semibold">Spécifications</h3>
             <ul className="space-y-2 text-sm text-gray-400">
-              <li>• Plaque de base 32x32 (LEGO 3811)</li>
-              <li>• Pièces 1x1 uniquement (LEGO 3024)</li>
+              <li>• Système modulaire LEGO Technic</li>
+              <li>• Tailles : 16x16, 32x32, 48x48, 64x64</li>
+              <li>• Briques Technic 16x16 (LEGO 65803)</li>
+              <li>• Connecteurs Technic (LEGO 61332)</li>
+              <li>• Pièces 1x1 (LEGO 3024)</li>
               <li>• Couleurs LEGO officielles</li>
               <li>• Export PNG, SVG, JSON</li>
-              <li>• 1024 pièces par mosaïque</li>
             </ul>
           </div>
         </div>

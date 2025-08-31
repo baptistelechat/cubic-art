@@ -17,8 +17,8 @@ export function HomePage() {
 
             <p className="text-xl md:text-2xl text-white/90 max-w-3xl mx-auto">
               Créez des œuvres d'art pixelisées uniques avec notre générateur
-              intelligent. Utilisez les couleurs officielles LEGO sur une plaque
-              de base 32x32.
+              intelligent. Utilisez les couleurs officielles LEGO avec notre système
+              modulaire Technic.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -68,8 +68,7 @@ export function HomePage() {
                 Couleurs LEGO Officielles
               </h3>
               <p className="text-gray-600">
-                Palette complète des couleurs officielles LEGO, incluant les 3
-                nouvelles teintes.
+                Palette complète des couleurs officielles LEGO.
               </p>
             </div>
 
@@ -79,11 +78,11 @@ export function HomePage() {
                 <Grid3X3 className="w-8 h-8 text-blue-600" />
               </div>
               <h3 className="text-xl font-semibold text-gray-900">
-                Format 32x32
+                Système Modulaire
               </h3>
               <p className="text-gray-600">
-                Plaque de base standard LEGO avec 1024 pièces 1x1 pour un
-                résultat optimal.
+                Tailles flexibles (16x16 à 64x64) avec une plaque de base Technic 16x16 pour
+                des créations sur mesure.
               </p>
             </div>
 
@@ -132,14 +131,26 @@ export function HomePage() {
                   <div className="w-2 h-2 bg-red-500 rounded-full mt-2"></div>
                   <div>
                     <h3 className="font-semibold text-gray-900">
-                      Plaque de base LEGO 3811
+                      Plaque de base Technic LEGO 65803
                     </h3>
                     <p className="text-gray-600">
-                      Format fixe 32x32 pour une compatibilité parfaite
+                      Plaque de base 16x16 modulaires pour structures flexibles
                     </p>
                   </div>
                 </div>
 
+                <div className="flex items-start space-x-3 text-left">
+                  <div className="w-2 h-2 bg-purple-500 rounded-full mt-2"></div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900">
+                      Connecteurs Technic LEGO 61332
+                    </h3>
+                    <p className="text-gray-600">
+                      Assemblage solide des modules entre eux
+                    </p>
+                  </div>
+                </div>
+                
                 <div className="flex items-start space-x-3 text-left">
                   <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
                   <div>
@@ -147,7 +158,7 @@ export function HomePage() {
                       Pièces 1x1 LEGO 3024
                     </h3>
                     <p className="text-gray-600">
-                      Exactement 1024 pièces par mosaïque
+                      De 256 à 4096 pièces par mosaïque
                     </p>
                   </div>
                 </div>
@@ -203,7 +214,7 @@ export function HomePage() {
                   })}
                 </div>
                 <p className="text-center text-sm text-gray-500 mt-4">
-                  Exemple de mosaïque 8x8 (la vraie est 32x32)
+                  Exemple de mosaïque 8x8 (tailles réelles : 16x16 à 64x64)
                 </p>
               </CardContent>
             </Card>

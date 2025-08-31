@@ -140,10 +140,10 @@ export function AboutPage() {
             {/* Questions techniques */}
             <AccordionItem value="item-10">
               <AccordionTrigger className="text-left">
-                Puis-je modifier la taille de la mosaïque (autre que 32x32) ?
+                Quelles tailles de mosaïques sont disponibles ?
               </AccordionTrigger>
               <AccordionContent>
-                Actuellement, Cubic Art est optimisé pour le format standard 32x32 qui correspond parfaitement à la plaque de base LEGO officielle (réf. 3811). Cette taille offre le meilleur équilibre entre détail et faisabilité de construction. D'autres formats pourraient être ajoutés dans les futures versions selon les retours de la communauté.
+                Cubic Art utilise un système modulaire LEGO Technic supportant les tailles 16x16, 32x32, 48x48 et 64x64. Chaque configuration utilise des plaques de base Technic 16x16 (réf. 65803) et des connecteurs (réf. 61332) pour créer une structure modulaire solide et flexible.
               </AccordionContent>
             </AccordionItem>
             
@@ -177,10 +177,10 @@ export function AboutPage() {
             
             <AccordionItem value="item-14">
               <AccordionTrigger className="text-left">
-                Combien coûte en moyenne une mosaïque 32x32 ?
+                Combien coûte en moyenne une mosaïque ?
               </AccordionTrigger>
               <AccordionContent>
-                Le coût varie selon les couleurs utilisées, mais comptez généralement entre 60€ et 80€ pour une mosaïque complète (plaque de base incluse). Les couleurs rares ou récentes peuvent être plus chères. L'estimation de coût dans l'export vous donnera une idée plus précise selon votre design.
+                Le coût varie selon la taille et les couleurs utilisées. Une mosaïque 32x32 coûte environ 60-80€ (briques Technic et connecteurs inclus), tandis qu'une 64x64 peut atteindre 300-400€. Les couleurs rares peuvent augmenter le prix. L'estimation de coût dans l'export vous donnera une idée précise selon votre design.
               </AccordionContent>
             </AccordionItem>
             
@@ -205,18 +205,23 @@ export function AboutPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
             <div className="space-y-4">
               <div className="border-l-4 border-blue-500 pl-4">
-                <h3 className="font-semibold text-gray-900 mb-1">Plaque de base LEGO 3811</h3>
-                <p className="text-gray-600">Format fixe 32x32 (25,6 cm × 25,6 cm)</p>
+                <h3 className="font-semibold text-gray-900 mb-1">Plaque de base Technic LEGO 65803</h3>
+                <p className="text-gray-600">Plaque de base 16x16 pour structures flexibles</p>
+              </div>
+              
+              <div className="border-l-4 border-blue-500 pl-4">
+                <h3 className="font-semibold text-gray-900 mb-1">Connecteurs Technic LEGO 61332</h3>
+                <p className="text-gray-600">Assemblage solide des modules entre eux</p>
               </div>
               
               <div className="border-l-4 border-blue-500 pl-4">
                 <h3 className="font-semibold text-gray-900 mb-1">Pièces 1x1 LEGO 3024</h3>
-                <p className="text-gray-600">Exactement 1024 pièces par mosaïque</p>
+                <p className="text-gray-600">De 256 à 4096 pièces par mosaïque</p>
               </div>
               
               <div className="border-l-4 border-blue-500 pl-4">
                 <h3 className="font-semibold text-gray-900 mb-1">Couleurs LEGO Officielles</h3>
-                <p className="text-gray-600">Palette LEGO officielle incluant les nouvelles teintes</p>
+                <p className="text-gray-600">Palette LEGO officielle</p>
               </div>
             </div>
             
@@ -228,7 +233,7 @@ export function AboutPage() {
               
               <div className="border-l-4 border-blue-500 pl-4">
                 <h3 className="font-semibold text-gray-900 mb-1">Export Multiple</h3>
-                <p className="text-gray-600">PNG, SVG et liste JSON des pièces</p>
+                <p className="text-gray-600">PNG, SVG et liste CSV/JSON des pièces</p>
               </div>
               
               <div className="border-l-4 border-blue-500 pl-4">
@@ -251,7 +256,7 @@ export function AboutPage() {
               <div className="border-l-4 border-yellow-500 pl-4">
                 <h3 className="font-semibold text-gray-900 mb-1">Redimensionnement intelligent</h3>
                 <p className="text-gray-600">
-                  Votre image est automatiquement redimensionnée en 32x32 pixels avec 
+                  Votre image est automatiquement redimensionnée selon la taille choisie (16x16 à 64x64) avec 
                   interpolation optimisée pour préserver les détails importants.
                 </p>
               </div>

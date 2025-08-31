@@ -1,6 +1,6 @@
 {
   "name": "cubic-art",
-  "description": "LEGO Mosaic Art Generator - Turn your images into unique pixelated artworks using official LEGO colors on a 32x32 baseplate.",
+  "description": "LEGO Mosaic Art Generator - Turn your images into unique pixelated artworks using official LEGO colors with modular Technic system.",
   "private": true,
   "version": "0.0.0",
   "type": "module",
