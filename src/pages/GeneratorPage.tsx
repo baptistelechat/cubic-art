@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 import { Upload, Download, Image as ImageIcon, Palette, Grid3X3, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useStore } from '@/hooks/useStore';
 import { processImageToMosaic, generateMosaicPreview } from '@/utils/imageProcessor';
 import type { MosaicResult } from '@/types';
@@ -384,25 +385,54 @@ export function GeneratorPage() {
               <CardHeader>
                 <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
                   <Palette size={24} className="text-red-600" />
-                  <span>Palette LEGO officielle</span>
+                  <span>Palette LEGO officielle complète</span>
                 </h3>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-8 gap-2">
-                  {config.colorPalette.slice(0, 32).map((color) => (
-                    <div
-                      key={color.id}
-                      className="w-8 h-8 rounded border border-gray-200"
-                      style={{ backgroundColor: color.hex }}
-                      title={color.name}
-                    ></div>
-                  ))}
-                </div>
-                
-                <p className="text-sm text-gray-600 mt-3">
-                  Affichage des 32 premières couleurs. La palette complète officielle LEGO 
-                  est utilisée pour le mapping optimal.
-                </p>
+                <TooltipProvider>
+                  <div className="grid grid-cols-10 gap-3 mb-4">
+                    {config.colorPalette.map((color) => (
+                      <Tooltip key={color.id}>
+                        <TooltipTrigger asChild>
+                          <div
+                            className="relative w-10 h-10 cursor-pointer transition-all duration-200 hover:scale-105 group"
+                            style={{ 
+                              backgroundColor: color.hex,
+                              boxShadow: `
+                                inset -1px -1px 2px rgba(0,0,0,0.15),
+                                inset 1px 1px 2px rgba(255,255,255,0.2),
+                                1px 1px 3px rgba(0,0,0,0.1)
+                              `
+                            }}
+                          >
+                            {/* Cercle central de la brique LEGO */}
+                            <div 
+                              className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-5 h-5 rounded-full"
+                              style={{
+                                backgroundColor: color.hex,
+                                boxShadow: `
+                                  inset -1px -1px 2px rgba(0,0,0,0.4),
+                                  inset 1px 1px 2px rgba(255,255,255,0.6),
+                                  0 1px 2px rgba(0,0,0,0.3)
+                                `,
+                                filter: 'brightness(1.1)'
+                              }}
+                            ></div>
+                            
+                            {/* Effet de brillance sur hover */}
+                            <div className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-200 bg-white pointer-events-none"></div>
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <div className="text-center">
+                            <div className="font-medium">{color.name}</div>
+                            <div className="text-xs opacity-70">ID: {color.id}</div>
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
+                    ))}
+                  </div>
+                </TooltipProvider>
               </CardContent>
             </Card>
           </div>
