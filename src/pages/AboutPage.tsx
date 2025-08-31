@@ -1,5 +1,12 @@
-import { Grid3X3, Palette, Zap, Github, Heart } from 'lucide-react';
+import { Grid3X3, Palette, Zap, Github, Heart, HelpCircle } from 'lucide-react';
 import { Button } from "@/components/ui/button";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Link } from "react-router-dom";
 
 export function AboutPage() {
   return (
@@ -22,17 +29,170 @@ export function AboutPage() {
             <h2 className="text-2xl font-bold text-gray-900">Notre Mission</h2>
           </div>
           
-          <p className="text-lg text-gray-700 leading-relaxed mb-6">
+          <p className="text-gray-700 leading-relaxed mb-6">
             Cubic Art a été créé pour démocratiser l'art des mosaïques LEGO. Notre objectif est de 
             fournir un outil simple, précis et gratuit permettant à chacun de transformer ses images 
             préférées en instructions de construction LEGO authentiques.
           </p>
           
-          <p className="text-lg text-gray-700 leading-relaxed">
+          <p className="text-gray-700 leading-relaxed">
             Que vous soyez un passionné de LEGO, un artiste numérique ou simplement curieux, 
             Cubic Art vous offre la possibilité de créer des œuvres d'art pixelisées uniques 
             en utilisant les spécifications officielles LEGO.
           </p>
+        </div>
+        
+        {/* FAQ Section */}
+        <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
+          <div className="flex items-center space-x-3 mb-6">
+            <HelpCircle className="text-purple-600" size={32} />
+            <h2 className="text-2xl font-bold text-gray-900">Questions fréquemment posées</h2>
+          </div>
+          
+          <p className="text-gray-600 mb-6 text-left">
+            Trouvez rapidement des réponses aux questions les plus courantes sur Cubic Art
+          </p>
+          
+          <Accordion type="single" collapsible className="w-full text-left">
+            {/* Questions générales sur l'utilisation */}
+            <AccordionItem value="item-1">
+              <AccordionTrigger className="text-left">
+                Quels formats d'image sont supportés par Cubic Art ?
+              </AccordionTrigger>
+              <AccordionContent>
+                Cubic Art supporte les formats d'image les plus courants : JPEG, PNG, GIF, BMP et WebP. Pour de meilleurs résultats, nous recommandons d'utiliser des images en haute résolution (minimum 500x500 pixels).
+              </AccordionContent>
+            </AccordionItem>
+            
+            <AccordionItem value="item-2">
+              <AccordionTrigger className="text-left">
+                Y a-t-il une limite de taille pour les images ?
+              </AccordionTrigger>
+              <AccordionContent>
+                Pour garantir des performances optimales, nous limitons la taille des images à 10 MB et 4000x4000 pixels. Si votre image est plus grande, elle sera automatiquement redimensionnée tout en préservant les proportions.
+              </AccordionContent>
+            </AccordionItem>
+            
+            <AccordionItem value="item-3">
+              <AccordionTrigger className="text-left">
+                Cubic Art est-il gratuit ?
+              </AccordionTrigger>
+              <AccordionContent>
+                Oui, Cubic Art est entièrement gratuit ! Vous pouvez convertir autant d'images que vous le souhaitez, exporter vos créations et accéder à toutes les fonctionnalités sans aucun coût.
+              </AccordionContent>
+            </AccordionItem>
+            
+            <AccordionItem value="item-4">
+              <AccordionTrigger className="text-left">
+                Puis-je utiliser Cubic Art sur mobile ?
+              </AccordionTrigger>
+              <AccordionContent>
+                Absolument ! Cubic Art est optimisé pour tous les appareils : ordinateurs, tablettes et smartphones. L'interface s'adapte automatiquement à la taille de votre écran pour une expérience utilisateur optimale.
+              </AccordionContent>
+            </AccordionItem>
+            
+            <AccordionItem value="item-5">
+              <AccordionTrigger className="text-left">
+                Mes données sont-elles sécurisées ?
+              </AccordionTrigger>
+              <AccordionContent>
+                Votre confidentialité est notre priorité. Les images sont traitées localement dans votre navigateur et ne sont jamais envoyées sur nos serveurs. Aucune donnée personnelle n'est collectée ou stockée.
+              </AccordionContent>
+            </AccordionItem>
+            
+            {/* Questions sur le fonctionnement */}
+            <AccordionItem value="item-6">
+              <AccordionTrigger className="text-left">
+                Pourquoi les couleurs de ma mosaïque sont-elles parfois différentes de mon image originale ?
+              </AccordionTrigger>
+              <AccordionContent>
+                Cubic Art utilise un système intelligent qui "traduit" chaque couleur de votre image vers la couleur LEGO la plus ressemblante disponible. Comme LEGO ne fabrique qu'un nombre limité de couleurs, certaines nuances subtiles de votre image originale sont automatiquement remplacées par la couleur LEGO la plus proche visuellement. C'est ce qui donne ce style "pixelisé" caractéristique des mosaïques LEGO !
+              </AccordionContent>
+            </AccordionItem>
+            
+            <AccordionItem value="item-7">
+              <AccordionTrigger className="text-left">
+                Comment fonctionne la conversion en couleurs LEGO ?
+              </AccordionTrigger>
+              <AccordionContent>
+                Notre algorithme analyse chaque pixel de votre image et le convertit vers la couleur LEGO la plus proche disponible dans notre palette. Nous utilisons la base de données des couleurs LEGO officielles pour garantir un rendu réaliste.
+              </AccordionContent>
+            </AccordionItem>
+            
+            <AccordionItem value="item-8">
+              <AccordionTrigger className="text-left">
+                Quels types d'images donnent les meilleurs résultats ?
+              </AccordionTrigger>
+              <AccordionContent>
+                Les images avec des contrastes marqués, des couleurs vives et des détails bien définis donnent les meilleurs résultats. Les portraits, logos, paysages simples et illustrations fonctionnent particulièrement bien. Évitez les images trop détaillées ou avec des dégradés très subtils qui pourraient se perdre dans la conversion.
+              </AccordionContent>
+            </AccordionItem>
+            
+            <AccordionItem value="item-9">
+              <AccordionTrigger className="text-left">
+                Puis-je créer des mosaïques en noir et blanc ?
+              </AccordionTrigger>
+              <AccordionContent>
+                Absolument ! Cubic Art gère parfaitement les images en noir et blanc ou en niveaux de gris. L'algorithme utilisera automatiquement la gamme des gris disponibles dans la palette LEGO (blanc, gris clair, gris foncé, noir) pour créer des mosaïques monochromes très élégantes.
+              </AccordionContent>
+            </AccordionItem>
+            
+            {/* Questions techniques */}
+            <AccordionItem value="item-10">
+              <AccordionTrigger className="text-left">
+                Puis-je modifier la taille de la mosaïque (autre que 32x32) ?
+              </AccordionTrigger>
+              <AccordionContent>
+                Actuellement, Cubic Art est optimisé pour le format standard 32x32 qui correspond parfaitement à la plaque de base LEGO officielle (réf. 3811). Cette taille offre le meilleur équilibre entre détail et faisabilité de construction. D'autres formats pourraient être ajoutés dans les futures versions selon les retours de la communauté.
+              </AccordionContent>
+            </AccordionItem>
+            
+            <AccordionItem value="item-11">
+              <AccordionTrigger className="text-left">
+                Puis-je exporter mon design en différents formats ?
+              </AccordionTrigger>
+              <AccordionContent>
+                Oui ! Cubic Art permet d'exporter vos créations en plusieurs formats : image PNG ou SVG en haute résolution, liste de pièces détaillée (CSV/JSON), et instructions de montage étape par étape. Vous pouvez également partager directement sur les réseaux sociaux.
+              </AccordionContent>
+            </AccordionItem>
+            
+            <AccordionItem value="item-12">
+              <AccordionTrigger className="text-left">
+                Comment obtenir la liste des pièces LEGO nécessaires ?
+              </AccordionTrigger>
+              <AccordionContent>
+                Après la conversion de votre image, cliquez sur "Exporter" puis sélectionnez "Liste de pièces". Vous obtiendrez un fichier détaillé avec le nombre exact de briques par couleur, leurs références officielles LEGO et une estimation du coût.
+              </AccordionContent>
+            </AccordionItem>
+            
+            {/* Questions pratiques */}
+            <AccordionItem value="item-13">
+              <AccordionTrigger className="text-left">
+                Où puis-je acheter les pièces LEGO nécessaires ?
+              </AccordionTrigger>
+              <AccordionContent>
+                Vous pouvez acheter les pièces sur le service "Pick-a-Brick" du site officiel LEGO, sur BrickLink (marketplace de pièces LEGO d'occasion), ou dans les magasins LEGO physiques. La liste générée par Cubic Art inclut les références exactes pour faciliter vos achats.
+              </AccordionContent>
+            </AccordionItem>
+            
+            <AccordionItem value="item-14">
+              <AccordionTrigger className="text-left">
+                Combien coûte en moyenne une mosaïque 32x32 ?
+              </AccordionTrigger>
+              <AccordionContent>
+                Le coût varie selon les couleurs utilisées, mais comptez généralement entre 60€ et 80€ pour une mosaïque complète (plaque de base incluse). Les couleurs rares ou récentes peuvent être plus chères. L'estimation de coût dans l'export vous donnera une idée plus précise selon votre design.
+              </AccordionContent>
+            </AccordionItem>
+            
+            <AccordionItem value="item-15">
+              <AccordionTrigger className="text-left">
+                Puis-je sauvegarder mes créations pour les retrouver plus tard ?
+              </AccordionTrigger>
+              <AccordionContent>
+                Actuellement, les créations sont temporaires et liées à votre session de navigation. Nous recommandons d'exporter vos mosaïques préférées (image + liste de pièces) pour les conserver. Une fonctionnalité de galerie personnelle pourrait être ajoutée dans une future version.
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </div>
         
         {/* Technical Specifications */}
@@ -212,9 +372,9 @@ export function AboutPage() {
               variant="cta-dark-outline"
               size="cta"
             >
-              <a href="/contact">
+              <Link to="/contact">
                 <span>Contribuer au projet</span>
-              </a>
+              </Link>
             </Button>
           </div>
         </div>

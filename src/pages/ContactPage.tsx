@@ -1,5 +1,6 @@
 import { Clock, Github, MessageSquare, Send, Twitter } from 'lucide-react';
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -17,11 +18,17 @@ export function ContactPage() {
   
 
   
+
+  
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
   
+
+  
+
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -74,7 +81,7 @@ export function ContactPage() {
               </div>
               <h4 className="font-semibold text-gray-900 mb-2">Vérifiez la FAQ</h4>
               <p className="text-gray-600 text-sm">
-                La plupart des questions courantes ont déjà une réponse dans notre FAQ.
+                La plupart des questions courantes ont déjà une réponse dans notre <Link to="/about" className="text-blue-600 hover:text-blue-800 underline font-medium">FAQ</Link>.
               </p>
             </div>
             
@@ -100,9 +107,11 @@ export function ContactPage() {
           </div>
         </div>
         
+
+        
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Contact Form */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2" id="contact-form">
             <Card className="h-full flex flex-col">
               <CardHeader>
                 <div className="flex items-center space-x-3">
@@ -279,9 +288,9 @@ export function ContactPage() {
               <p className="text-blue-100 mb-4 text-sm">
                 Consultez notre FAQ pour trouver des réponses rapides aux questions les plus courantes.
               </p>
-              <button className="bg-white text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors font-medium text-sm">
+              <Link to="/about" className="bg-white text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors font-medium text-sm inline-block">
                 Voir la FAQ
-              </button>
+              </Link>
             </div>
             
 
