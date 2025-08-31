@@ -272,19 +272,93 @@ export async function processImageToMosaic(
   });
 }
 
-// Génère un canvas de prévisualisation de la mosaïque
+// Génère un canvas de prévisualisation de la mosaïque avec effet de tenon LEGO
 export function generateMosaicPreview(result: MosaicResult, scale: number = 10): HTMLCanvasElement {
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d')!;
   
+  // Gestion des écrans haute résolution pour éviter le flou
+  const devicePixelRatio = window.devicePixelRatio || 1;
   const gridSize = result.config.size;
-  canvas.width = gridSize * scale;
-  canvas.height = gridSize * scale;
+  
+  // Taille d'affichage
+  const displayWidth = gridSize * scale;
+  const displayHeight = gridSize * scale;
+  
+  // Taille réelle du canvas (avec devicePixelRatio)
+  canvas.width = displayWidth * devicePixelRatio;
+  canvas.height = displayHeight * devicePixelRatio;
+  
+  // Taille CSS d'affichage
+  canvas.style.width = displayWidth + 'px';
+  canvas.style.height = displayHeight + 'px';
+  
+  // Mise à l'échelle du contexte pour les écrans haute résolution
+  ctx.scale(devicePixelRatio, devicePixelRatio);
+  
+  // Désactiver l'antialiasing pour un rendu net et pixelisé
+  ctx.imageSmoothingEnabled = false;
+  
+  // Ajuster le scale pour le devicePixelRatio
+  const adjustedScale = scale;
   
   result.grid.forEach((row, y) => {
     row.forEach((color, x) => {
-      ctx.fillStyle = color.hex;
-      ctx.fillRect(x * scale, y * scale, scale, scale);
+      if (color) {
+        // Position et taille de la brique
+        const brickX = x * adjustedScale;
+        const brickY = y * adjustedScale;
+        const brickSize = adjustedScale;
+        
+        // Dessiner la brique avec effet 3D
+        // Base de la brique
+        ctx.fillStyle = color.hex;
+        ctx.fillRect(brickX, brickY, brickSize, brickSize);
+        
+        // Ombre en bas et à droite pour l'effet 3D
+        const shadowOffset = Math.max(1, adjustedScale * 0.1);
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+        ctx.fillRect(brickX + shadowOffset, brickY + brickSize - shadowOffset, brickSize - shadowOffset, shadowOffset);
+        ctx.fillRect(brickX + brickSize - shadowOffset, brickY + shadowOffset, shadowOffset, brickSize - shadowOffset);
+        
+        // Dessiner le tenon central
+        const studRadius = Math.max(2, adjustedScale * 0.15);
+        const studCenterX = brickX + brickSize / 2;
+        const studCenterY = brickY + brickSize / 2;
+        
+        // Ombre du tenon
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+        ctx.beginPath();
+        ctx.arc(studCenterX + 1, studCenterY + 1, studRadius, 0, 2 * Math.PI);
+        ctx.fill();
+        
+        // Base du tenon (même couleur que la brique)
+        ctx.fillStyle = color.hex;
+        ctx.beginPath();
+        ctx.arc(studCenterX, studCenterY, studRadius, 0, 2 * Math.PI);
+        ctx.fill();
+        
+        // Effet de relief avec gradient radial
+        const gradient = ctx.createRadialGradient(
+          studCenterX - studRadius * 0.3, studCenterY - studRadius * 0.3, 0,
+          studCenterX, studCenterY, studRadius
+        );
+        
+        gradient.addColorStop(0, `rgba(255, 255, 255, 0.6)`);
+        gradient.addColorStop(0.7, `rgba(255, 255, 255, 0.1)`);
+        gradient.addColorStop(1, `rgba(0, 0, 0, 0.4)`);
+        
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(studCenterX, studCenterY, studRadius, 0, 2 * Math.PI);
+        ctx.fill();
+        
+        // Brillance sur le tenon
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.beginPath();
+        ctx.arc(studCenterX - studRadius * 0.3, studCenterY - studRadius * 0.3, studRadius * 0.4, 0, 2 * Math.PI);
+        ctx.fill();
+      }
     });
   });
   

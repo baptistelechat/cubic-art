@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { MosaicComparison } from '@/components/MosaicComparison';
 import { useStore } from '@/hooks/useStore';
 import { processImageToMosaic, generateMosaicPreview } from '@/utils/imageProcessor';
 import type { MosaicResult } from '@/types';
@@ -378,25 +379,7 @@ export function GeneratorPage() {
               </Card>
             )}
 
-            {/* Original Image Preview */}
-            {previewUrl && (
-              <Card>
-                <CardHeader>
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    Image originale
-                  </h3>
-                </CardHeader>
-                <CardContent>
-                  <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
-                    <img
-                      src={previewUrl}
-                      alt="Image originale"
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+
           </div>
 
           {/* Result Section */}
@@ -423,50 +406,25 @@ export function GeneratorPage() {
               </Card>
             )}
 
+            {mosaicResult && mosaicCanvas && previewUrl && (
+              <MosaicComparison
+                originalImage={previewUrl}
+                mosaicCanvas={mosaicCanvas}
+                pieceCount={mosaicResult.totalPieces}
+                colorCount={mosaicResult.piecesList ? Object.keys(mosaicResult.piecesList).length : 0}
+                className="bg-white shadow-lg"
+              />
+            )}
+
             {mosaicResult && mosaicCanvas && (
               <Card>
                 <CardHeader>
                   <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
-                    <Grid3X3 size={24} className="text-green-600" />
-                    <span>Mosaïque LEGO Modulaire</span>
+                    <Download size={24} className="text-blue-600" />
+                    <span>Téléchargements</span>
                   </h3>
                 </CardHeader>
                 <CardContent>
-                  <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-4">
-                    <canvas
-                      ref={(canvas) => {
-                        if (canvas && mosaicCanvas) {
-                          const ctx = canvas.getContext("2d")!;
-                          canvas.width = mosaicCanvas.width;
-                          canvas.height = mosaicCanvas.height;
-                          ctx.drawImage(mosaicCanvas, 0, 0);
-                        }
-                      }}
-                      className="w-full h-full object-contain"
-                    />
-                  </div>
-
-                  {/* Stats */}
-                  <div className="grid grid-cols-2 gap-4 mb-6">
-                    <div className="text-center p-3 bg-gray-50 rounded-lg">
-                      <div className="text-2xl font-bold text-gray-900">
-                        {mosaicResult.totalPieces}
-                      </div>
-                      <div className="text-sm text-gray-600">
-                        Pièces totales
-                      </div>
-                    </div>
-                    <div className="text-center p-3 bg-gray-50 rounded-lg">
-                      <div className="text-2xl font-bold text-gray-900">
-                        {Object.keys(mosaicResult.piecesList || {}).length}
-                      </div>
-                      <div className="text-sm text-gray-600">
-                        Couleurs utilisées
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Download Buttons */}
                   <div className="space-y-3">
                     <Button
                       onClick={downloadPNG}
