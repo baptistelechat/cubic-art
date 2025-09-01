@@ -313,7 +313,7 @@ export function GeneratorPage() {
 
     // Créer le contenu CSV
     let csvContent = "Couleur,Code LEGO,Hex,Quantité\n";
-    
+
     Object.entries(mosaicResult.piecesList)
       .filter(
         ([key]) =>
@@ -335,7 +335,7 @@ export function GeneratorPage() {
         const colorHex = colorInfo.match(/\(([^)]+)\)/)?.[1] || "#000000";
         const legoColor = config.colorPalette.find((c) => c.hex === colorHex);
         const legoId = legoColor?.id || "N/A";
-        
+
         csvContent += `"${colorName}","${legoId}","${colorHex}",${count}\n`;
       });
 
@@ -350,221 +350,260 @@ export function GeneratorPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Générateur de mosaïques LEGO
-          </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Uploadez votre image et transformez-la en mosaïque LEGO modulaire
-            avec les couleurs officielles LEGO
-          </p>
-        </div>
+    <>
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-6">
+          {/* En-tête */}
+          <div className="text-center mb-6">
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">
+              Générateur de Mosaïque LEGO
+            </h1>
+            <p className="text-lg text-gray-600">
+              Transformez vos images en mosaïques LEGO avec les couleurs
+              officielles
+            </p>
+          </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Left Column - Upload and Configuration */}
-          <div className="space-y-6">
-            {/* Upload Area */}
-            <Card>
-              <CardHeader>
-                <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
-                  <Upload size={24} className="text-blue-600" />
-                  <span>Uploader votre image</span>
-                </h3>
-              </CardHeader>
-              <CardContent>
-                <div
-                  className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-                    dragActive
-                      ? "border-blue-400 bg-blue-50"
-                      : "border-gray-300 hover:border-gray-400"
-                  }`}
-                  onDrop={handleDrop}
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <ImageIcon size={48} className="mx-auto text-gray-400 mb-4" />
-                  <p className="text-lg font-medium text-gray-900 mb-2">
-                    Glissez-déposez votre image ici
-                  </p>
-                  <p className="text-gray-500 mb-4">
-                    ou cliquez pour parcourir vos fichiers
-                  </p>
-                  <Button className="bg-blue-600 hover:bg-blue-700">
-                    Choisir un fichier
-                  </Button>
-                </div>
-
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileInputChange}
-                  className="hidden"
-                />
-              </CardContent>
-            </Card>
-
-            {/* Configuration */}
-            <Card>
-              <CardHeader>
-                <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
-                  <Grid3X3 size={24} className="text-green-600" />
-                  <span>Configuration</span>
-                </h3>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="text-left">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Taille de la grille
-                    </label>
-                    <Select
-                      value={config.size.toString()}
-                      onValueChange={(value) =>
-                        updateConfig({
-                          size: parseInt(value) as 16 | 32 | 48 | 64,
-                        })
-                      }
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Sélectionnez une taille" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="16">
-                          <div className="flex items-center space-x-1">
-                            <Puzzle className="size-4 text-gray-900" />
-                            <span className="text-sm text-gray-900 font-medium">
-                              16x16
-                            </span>
-                            <span className="text-xs text-gray-600">
-                              (256 pièces)
-                            </span>
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="32">
-                          <div className="flex items-center space-x-1">
-                            <Puzzle className="size-4 text-gray-900" />
-                            <span className="text-sm text-gray-900 font-medium">
-                              32x32
-                            </span>
-                            <span className="text-xs text-gray-600">
-                              (1024 pièces)
-                            </span>
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="48">
-                          <div className="flex items-center space-x-1">
-                            <Puzzle className="size-4 text-gray-900" />
-                            <span className="text-sm text-gray-900 font-medium">
-                              48x48
-                            </span>
-                            <span className="text-xs text-gray-600">
-                              (2304 pièces)
-                            </span>
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="64">
-                          <div className="flex items-center space-x-1">
-                            <Puzzle className="size-4 text-gray-900" />
-                            <span className="text-sm text-gray-900 font-medium">
-                              64x64
-                            </span>
-                            <span className="text-xs text-gray-600">
-                              (4096 pièces)
-                            </span>
-                          </div>
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
+          {/* Première section : 2 colonnes */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Colonne gauche : Upload et Configuration */}
+            <div className="space-y-6">
+              {/* Upload Area */}
+              <Card>
+                <CardHeader>
+                  <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
+                    <Upload size={24} className="text-blue-600" />
+                    <span>Uploader votre image</span>
+                  </h3>
+                </CardHeader>
+                <CardContent>
+                  <div
+                    className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+                      dragActive
+                        ? "border-blue-400 bg-blue-50"
+                        : "border-gray-300 hover:border-gray-400"
+                    }`}
+                    onDrop={handleDrop}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <ImageIcon
+                      size={48}
+                      className="mx-auto text-gray-400 mb-4"
+                    />
+                    <p className="text-lg font-medium text-gray-900 mb-2">
+                      Glissez-déposez votre image ici
+                    </p>
+                    <p className="text-gray-500 mb-4">
+                      ou cliquez pour parcourir vos fichiers
+                    </p>
+                    <Button className="bg-blue-600 hover:bg-blue-700">
+                      Choisir un fichier
+                    </Button>
                   </div>
 
-                  <div className="text-left">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Couleur de remplacement de la transparence (Import PNG)
-                    </label>
-                    <Select
-                      value={backgroundColorForTransparency.id.toString()}
-                      onValueChange={(value) => {
-                        if (value === "-1") {
-                          setBackgroundColorForTransparency(EMPTY_COLOR);
-                        } else {
-                          const selectedColor = config.colorPalette.find(
-                            (color) => color.id.toString() === value
-                          );
-                          if (selectedColor) {
-                            setBackgroundColorForTransparency(selectedColor);
-                          }
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileInputChange}
+                    className="hidden"
+                  />
+                </CardContent>
+              </Card>
+
+              {/* Configuration */}
+              <Card>
+                <CardHeader>
+                  <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
+                    <Grid3X3 size={24} className="text-green-600" />
+                    <span>Configuration</span>
+                  </h3>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="text-left">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Taille de la grille
+                      </label>
+                      <Select
+                        value={config.size.toString()}
+                        onValueChange={(value) =>
+                          updateConfig({
+                            size: parseInt(value) as 16 | 32 | 48 | 64,
+                          })
                         }
-                      }}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue>
-                          <div className="flex items-center space-x-2">
-                            {backgroundColorForTransparency.id === -1 ? (
-                              <div className="w-6 h-6 border-2 border-dashed border-gray-400 rounded flex items-center justify-center">
-                                <span className="text-xs text-gray-500">∅</span>
-                              </div>
-                            ) : (
-                              <LegoBrick
-                                color={backgroundColorForTransparency}
-                                size="sm"
-                                showTooltip={false}
-                              />
-                            )}
-                            <span className="text-sm text-gray-900 font-medium">
-                              {backgroundColorForTransparency.name}
-                            </span>
-                            <span className="text-xs text-gray-600">
-                              {backgroundColorForTransparency.id !== -1 &&
-                                `#${backgroundColorForTransparency.id}`}
-                            </span>
-                          </div>
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent className="max-h-60">
-                        <SelectItem
-                          key={EMPTY_COLOR.id}
-                          value={EMPTY_COLOR.id.toString()}
-                        >
-                          <div className="flex items-center space-x-2">
-                            <div className="w-6 h-6 border-2 border-dashed border-gray-400 rounded flex items-center justify-center">
-                              <span className="text-xs text-gray-500">∅</span>
-                            </div>
-                            <span className="text-sm">{EMPTY_COLOR.name}</span>
-                          </div>
-                        </SelectItem>
-                        {config.colorPalette.map((color) => (
-                          <SelectItem
-                            key={color.id}
-                            value={color.id.toString()}
-                          >
-                            <div className="flex items-center space-x-2">
-                              <LegoBrick
-                                color={color}
-                                size="sm"
-                                showTooltip={false}
-                              />
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Sélectionnez une taille" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="16">
+                            <div className="flex items-center space-x-1">
+                              <Puzzle className="size-4 text-gray-900" />
                               <span className="text-sm text-gray-900 font-medium">
-                                {color.name}
+                                16x16
                               </span>
                               <span className="text-xs text-gray-600">
-                                #{color.id}
+                                (256 pièces)
                               </span>
                             </div>
                           </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                          <SelectItem value="32">
+                            <div className="flex items-center space-x-1">
+                              <Puzzle className="size-4 text-gray-900" />
+                              <span className="text-sm text-gray-900 font-medium">
+                                32x32
+                              </span>
+                              <span className="text-xs text-gray-600">
+                                (1024 pièces)
+                              </span>
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="48">
+                            <div className="flex items-center space-x-1">
+                              <Puzzle className="size-4 text-gray-900" />
+                              <span className="text-sm text-gray-900 font-medium">
+                                48x48
+                              </span>
+                              <span className="text-xs text-gray-600">
+                                (2304 pièces)
+                              </span>
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="64">
+                            <div className="flex items-center space-x-1">
+                              <Puzzle className="size-4 text-gray-900" />
+                              <span className="text-sm text-gray-900 font-medium">
+                                64x64
+                              </span>
+                              <span className="text-xs text-gray-600">
+                                (4096 pièces)
+                              </span>
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-            {/* Error Message */}
+                    <div className="text-left">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Couleur de remplacement de la transparence (Import PNG)
+                      </label>
+                      <Select
+                        value={backgroundColorForTransparency.id.toString()}
+                        onValueChange={(value) => {
+                          if (value === "-1") {
+                            setBackgroundColorForTransparency(EMPTY_COLOR);
+                          } else {
+                            const selectedColor = config.colorPalette.find(
+                              (color) => color.id.toString() === value
+                            );
+                            if (selectedColor) {
+                              setBackgroundColorForTransparency(selectedColor);
+                            }
+                          }
+                        }}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue>
+                            <div className="flex items-center space-x-2">
+                              {backgroundColorForTransparency.id === -1 ? (
+                                <div className="w-6 h-6 border-2 border-dashed border-gray-400 rounded flex items-center justify-center">
+                                  <span className="text-xs text-gray-500">
+                                    ∅
+                                  </span>
+                                </div>
+                              ) : (
+                                <LegoBrick
+                                  color={backgroundColorForTransparency}
+                                  size="sm"
+                                  showTooltip={false}
+                                />
+                              )}
+                              <span className="text-sm text-gray-900 font-medium">
+                                {backgroundColorForTransparency.name}
+                              </span>
+                              <span className="text-xs text-gray-600">
+                                {backgroundColorForTransparency.id !== -1 &&
+                                  `#${backgroundColorForTransparency.id}`}
+                              </span>
+                            </div>
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent className="max-h-60">
+                          <SelectItem
+                            key={EMPTY_COLOR.id}
+                            value={EMPTY_COLOR.id.toString()}
+                          >
+                            <div className="flex items-center space-x-2">
+                              <div className="w-6 h-6 border-2 border-dashed border-gray-400 rounded flex items-center justify-center">
+                                <span className="text-xs text-gray-500">∅</span>
+                              </div>
+                              <span className="text-sm">
+                                {EMPTY_COLOR.name}
+                              </span>
+                            </div>
+                          </SelectItem>
+                          {config.colorPalette.map((color) => (
+                            <SelectItem
+                              key={color.id}
+                              value={color.id.toString()}
+                            >
+                              <div className="flex items-center space-x-2">
+                                <LegoBrick
+                                  color={color}
+                                  size="sm"
+                                  showTooltip={false}
+                                />
+                                <span className="text-sm text-gray-900 font-medium">
+                                  {color.name}
+                                </span>
+                                <span className="text-xs text-gray-600">
+                                  #{color.id}
+                                </span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Colonne droite - Palette LEGO officielle */}
+            <div className="h-full flex flex-col">
+              <Card className="flex-1 flex flex-col">
+                <CardHeader>
+                  <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
+                    <Palette size={24} className="text-red-600" />
+                    <span>Palette LEGO officielle complète</span>
+                  </h3>
+                </CardHeader>
+                <CardContent className="flex-1 overflow-y-auto">
+                  <TooltipProvider>
+                    <div className="grid grid-cols-8 gap-3">
+                      {config.colorPalette.map((color) => (
+                        <LegoBrick
+                          key={color.id}
+                          color={color}
+                          size="md"
+                          showTooltip={true}
+                        />
+                      ))}
+                    </div>
+                  </TooltipProvider>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+
+          {/* Deuxième section : Résultats et actions */}
+          <div className="space-y-6">
+            {/* Message d'erreur */}
             {error && (
               <Card className="border-red-200 bg-red-50">
                 <CardContent className="pt-6">
@@ -612,72 +651,7 @@ export function GeneratorPage() {
               </Card>
             )}
 
-            {/* Aperçu de la mosaïque */}
-            {mosaicResult && mosaicCanvas && previewUrl && (
-              <MosaicComparison
-                originalImage={previewUrl}
-                mosaicCanvas={mosaicCanvas}
-                pieceCount={mosaicResult.totalPieces}
-                colorCount={
-                  mosaicResult.piecesList
-                    ? Object.keys(mosaicResult.piecesList).filter(
-                        (key) =>
-                          !key.includes("Brique Technic") &&
-                          !key.includes("Connecteur") &&
-                          !key.includes("Plates 1x1")
-                      ).length
-                    : 0
-                }
-                className="bg-white shadow-lg"
-              />
-            )}
-
-            {/* Téléchargements */}
-            {mosaicResult && mosaicCanvas && (
-              <Card>
-                <CardHeader>
-                  <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
-                    <Download size={24} className="text-green-600" />
-                    <span>Téléchargements</span>
-                  </h3>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <button
-                    onClick={downloadPNG}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
-                  >
-                    <Download size={20} />
-                    <span>Télécharger PNG</span>
-                  </button>
-                  <button
-                    onClick={downloadSVG}
-                    className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
-                  >
-                    <Download size={20} />
-                    <span>Télécharger SVG</span>
-                  </button>
-                  <button
-                    onClick={downloadPiecesList}
-                    className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
-                  >
-                    <Download size={20} />
-                    <span>Liste des pièces (CSV)</span>
-                  </button>
-                  <button
-                    onClick={downloadJSON}
-                    className="w-full bg-orange-600 hover:bg-orange-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
-                  >
-                    <Download size={20} />
-                    <span>Données JSON</span>
-                  </button>
-                </CardContent>
-              </Card>
-            )}
-
-          </div>
-
-          {/* Result Section */}
-          <div className="space-y-6">
+            {/* Indicateur de traitement */}
             {isProcessing && (
               <Card>
                 <CardContent className="pt-6">
@@ -700,129 +674,85 @@ export function GeneratorPage() {
               </Card>
             )}
 
-            {/* Palette LEGO officielle complète */}
-            <Card>
-              <CardHeader>
-                <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
-                  <Palette size={24} className="text-red-600" />
-                  <span>Palette LEGO officielle complète</span>
-                </h3>
-              </CardHeader>
-              <CardContent>
-                <TooltipProvider>
-                  <div className="grid grid-cols-10 gap-3 mb-4">
-                    {config.colorPalette.map((color) => (
-                      <LegoBrick
-                        key={color.id}
-                        color={color}
-                        size="md"
-                        showTooltip={true}
-                      />
-                    ))}
-                  </div>
-                </TooltipProvider>
-              </CardContent>
-            </Card>
+            {/* Troisième section : Preview et Décomposition en 2 colonnes */}
+            {mosaicResult &&
+              mosaicCanvas &&
+              previewUrl &&
+              mosaicResult.piecesList && (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Colonne gauche : Aperçu de la mosaïque + Téléchargements */}
+                  <div className="space-y-6">
+                    <MosaicComparison
+                      originalImage={previewUrl}
+                      mosaicCanvas={mosaicCanvas}
+                      pieceCount={mosaicResult.totalPieces}
+                      colorCount={
+                        mosaicResult.piecesList
+                          ? Object.keys(mosaicResult.piecesList).filter(
+                              (key) =>
+                                !key.includes("Brique Technic") &&
+                                !key.includes("Connecteur") &&
+                                !key.includes("Plates 1x1")
+                            ).length
+                          : 0
+                      }
+                      className="bg-white shadow-lg"
+                    />
 
-            {/* Décomposition des pièces par couleurs */}
-            {mosaicResult && mosaicResult.piecesList && (
-              <Card>
-                <CardHeader>
-                  <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
-                    <Palette size={24} className="text-purple-600" />
-                    <span>Décomposition des pièces par couleurs</span>
-                  </h3>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {Object.entries(mosaicResult.piecesList)
-                      .filter(
-                        ([key]) =>
-                          !key.includes("Brique Technic") &&
-                          !key.includes("Connecteur") &&
-                          !key.includes("Plates 1x1")
-                      )
-                      .sort(([colorInfoA], [colorInfoB]) => {
-                        const colorHexA =
-                          colorInfoA.match(/\(([^)]+)\)/)?.[1] || "#000000";
-                        const colorHexB =
-                          colorInfoB.match(/\(([^)]+)\)/)?.[1] || "#000000";
-                        const legoColorA = config.colorPalette.find(
-                          (c) => c.hex === colorHexA
-                        );
-                        const legoColorB = config.colorPalette.find(
-                          (c) => c.hex === colorHexB
-                        );
-                        const idA = legoColorA?.id || 999999;
-                        const idB = legoColorB?.id || 999999;
-                        return idA - idB;
-                      })
-                      .map(([colorInfo, count]) => {
-                        const colorName = colorInfo.split(" (")[0];
-                        const colorHex =
-                          colorInfo.match(/\(([^)]+)\)/)?.[1] || "#000000";
-                        const legoColor = config.colorPalette.find(
-                          (c) => c.hex === colorHex
-                        );
-
-                        return (
-                          <div
-                            key={colorInfo}
-                            className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                    {/* Téléchargements - 4 boutons sur une ligne */}
+                    <Card>
+                      <CardHeader>
+                        <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
+                          <Download size={24} className="text-green-600" />
+                          <span>Téléchargements</span>
+                        </h3>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                          <button
+                            onClick={downloadPNG}
+                            className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
                           >
-                            <div className="flex items-center space-x-2">
-                              {legoColor && (
-                                <LegoBrick
-                                  color={legoColor}
-                                  size="md"
-                                  showTooltip={false}
-                                />
-                              )}
-                              <div className="text-left">
-                                <div className="font-medium text-gray-900 text-sm">
-                                  {colorName}
-                                </div>
-                                <div className="text-xs text-gray-500">
-                                  #{legoColor?.id || "N/A"}
-                                </div>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <div className="font-bold text-lg text-gray-900">
-                                {count}
-                              </div>
-                              <div className="text-xs text-gray-500">
-                                pièces
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
+                            <Download size={20} />
+                            <span>PNG</span>
+                          </button>
+                          <button
+                            onClick={downloadSVG}
+                            className="bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
+                          >
+                            <Download size={20} />
+                            <span>SVG</span>
+                          </button>
+                          <button
+                            onClick={downloadPiecesList}
+                            className="bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
+                          >
+                            <Download size={20} />
+                            <span>CSV</span>
+                          </button>
+                          <button
+                            onClick={downloadJSON}
+                            className="bg-orange-600 hover:bg-orange-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
+                          >
+                            <Download size={20} />
+                            <span>JSON</span>
+                          </button>
+                        </div>
+                      </CardContent>
+                    </Card>
                   </div>
 
-                  {/* Total des pièces colorées avec brique LEGO blanche */}
-                  <div className="border-t mt-3">
-                    <div className="flex items-center justify-between p-3 rounded-lg text-gray-900">
-                      <div className="flex items-center space-x-3">
-                        <LegoBrick
-                          color={{
-                            id: 302401,
-                            name: "White",
-                            hex: "#f4f4f4",
-                            rgb: [244, 244, 244],
-                          }}
-                          size="md"
-                          showTooltip={false}
-                        />
-                        <div className="text-left">
-                          <div className="font-medium text-gray-900 text-sm">
-                            Pièces 1x1
-                          </div>
-                          <div className="text-xs text-gray-500">#3024</div>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-bold text-xl">
+                  {/* Colonne droite : Décomposition des pièces par couleurs */}
+                  <div>
+                    <Card>
+                      <CardHeader>
+                        <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
+                          <Palette size={24} className="text-purple-600" />
+                          <span>Décomposition des pièces par couleurs</span>
+                        </h3>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                           {Object.entries(mosaicResult.piecesList)
                             .filter(
                               ([key]) =>
@@ -830,18 +760,115 @@ export function GeneratorPage() {
                                 !key.includes("Connecteur") &&
                                 !key.includes("Plates 1x1")
                             )
-                            .reduce((sum, [, count]) => sum + count, 0)}
+                            .sort(([colorInfoA], [colorInfoB]) => {
+                              const colorHexA =
+                                colorInfoA.match(/\(([^)]+)\)/)?.[1] ||
+                                "#000000";
+                              const colorHexB =
+                                colorInfoB.match(/\(([^)]+)\)/)?.[1] ||
+                                "#000000";
+                              const legoColorA = config.colorPalette.find(
+                                (c) => c.hex === colorHexA
+                              );
+                              const legoColorB = config.colorPalette.find(
+                                (c) => c.hex === colorHexB
+                              );
+                              const idA = legoColorA?.id || 999999;
+                              const idB = legoColorB?.id || 999999;
+                              return idA - idB;
+                            })
+                            .map(([colorInfo, count]) => {
+                              const colorName = colorInfo.split(" (")[0];
+                              const colorHex =
+                                colorInfo.match(/\(([^)]+)\)/)?.[1] ||
+                                "#000000";
+                              const legoColor = config.colorPalette.find(
+                                (c) => c.hex === colorHex
+                              );
+
+                              return (
+                                <div
+                                  key={colorInfo}
+                                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                                >
+                                  <div className="flex items-center space-x-2">
+                                    {legoColor && (
+                                      <LegoBrick
+                                        color={legoColor}
+                                        size="md"
+                                        showTooltip={false}
+                                      />
+                                    )}
+                                    <div className="text-left">
+                                      <div className="font-medium text-gray-900 text-sm">
+                                        {colorName}
+                                      </div>
+                                      <div className="text-xs text-gray-500">
+                                        #{legoColor?.id || "N/A"}
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div className="text-right">
+                                    <div className="font-bold text-lg text-gray-900">
+                                      {count}
+                                    </div>
+                                    <div className="text-xs text-gray-500">
+                                      pièces
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
                         </div>
-                        <div className="text-sm text-gray-600">pièces</div>
-                      </div>
-                    </div>
+
+                        {/* Total des pièces colorées avec brique LEGO blanche */}
+                        <div className="border-t mt-3">
+                          <div className="flex items-center justify-between p-3 rounded-lg text-gray-900">
+                            <div className="flex items-center space-x-3">
+                              <LegoBrick
+                                color={{
+                                  id: 302401,
+                                  name: "White",
+                                  hex: "#f4f4f4",
+                                  rgb: [244, 244, 244],
+                                }}
+                                size="md"
+                                showTooltip={false}
+                              />
+                              <div className="text-left">
+                                <div className="font-medium text-gray-900 text-sm">
+                                  Pièces 1x1
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                  #3024
+                                </div>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="font-bold text-xl">
+                                {Object.entries(mosaicResult.piecesList)
+                                  .filter(
+                                    ([key]) =>
+                                      !key.includes("Brique Technic") &&
+                                      !key.includes("Connecteur") &&
+                                      !key.includes("Plates 1x1")
+                                  )
+                                  .reduce((sum, [, count]) => sum + count, 0)}
+                              </div>
+                              <div className="text-sm text-gray-600">
+                                pièces
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
                   </div>
-                </CardContent>
-              </Card>
-            )}
+                </div>
+              )}
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
