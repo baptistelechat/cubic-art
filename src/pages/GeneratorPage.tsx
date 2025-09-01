@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/select";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useStore } from "@/hooks/useStore";
-import type { MosaicResult } from "@/types";
+import type { LegoColor, MosaicResult } from "@/types";
 import {
   generateMosaicPreview,
   processImageToMosaic,
@@ -22,6 +22,7 @@ import {
   Grid3X3,
   Image as ImageIcon,
   Palette,
+  Puzzle,
   Upload,
 } from "lucide-react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
@@ -67,6 +68,21 @@ export function GeneratorPage() {
   // État pour stocker le fichier actuel
   const [currentFile, setCurrentFile] = useState<File | null>(null);
 
+  // Couleur spéciale "Vide" pour ne placer aucune pièce
+  const EMPTY_COLOR: LegoColor = {
+    id: -1,
+    name: "Vide",
+    hex: "#transparent",
+    rgb: [0, 0, 0],
+  };
+
+  // État pour la couleur de fond de remplacement pour la transparence
+  const [backgroundColorForTransparency, setBackgroundColorForTransparency] =
+    useState<LegoColor>(
+      config.colorPalette.find((color) => color.name === "White") ||
+        config.colorPalette[0]
+    );
+
   // Fonctions stabilisées avec useCallback pour éviter les boucles infinies
   const stableSetIsProcessing = useCallback(
     (processing: boolean) => {
@@ -91,7 +107,11 @@ export function GeneratorPage() {
           setError(null);
 
           // Traitement de l'image avec la nouvelle configuration
-          const result = await processImageToMosaic(currentFile, config);
+          const result = await processImageToMosaic(
+            currentFile,
+            config,
+            backgroundColorForTransparency
+          );
 
           // Génération du canvas de prévisualisation
           const canvas = generateMosaicPreview(result, 10);
@@ -111,7 +131,13 @@ export function GeneratorPage() {
 
     regenerateMosaic();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [config, currentFile, stableSetIsProcessing, stableSetMosaicResult]); // Dépendances sans isProcessing pour éviter la boucle infinie
+  }, [
+    config,
+    currentFile,
+    backgroundColorForTransparency,
+    stableSetIsProcessing,
+    stableSetMosaicResult,
+  ]); // Dépendances sans isProcessing pour éviter la boucle infinie
 
   // Constantes pour les limites
   const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 Mo en bytes
@@ -189,7 +215,11 @@ export function GeneratorPage() {
       setIsProcessing(true);
 
       // Traitement de l'image
-      const result = await processImageToMosaic(file, config);
+      const result = await processImageToMosaic(
+        file,
+        config,
+        backgroundColorForTransparency
+      );
 
       // Génération du canvas de prévisualisation
       const canvas = generateMosaicPreview(result, 10);
@@ -278,6 +308,47 @@ export function GeneratorPage() {
     URL.revokeObjectURL(url);
   };
 
+  const downloadPiecesList = () => {
+    if (!mosaicResult || !mosaicResult.piecesList) return;
+
+    // Créer le contenu CSV
+    let csvContent = "Couleur,Code LEGO,Hex,Quantité\n";
+    
+    Object.entries(mosaicResult.piecesList)
+      .filter(
+        ([key]) =>
+          !key.includes("Brique Technic") &&
+          !key.includes("Connecteur") &&
+          !key.includes("Plates 1x1")
+      )
+      .sort(([colorInfoA], [colorInfoB]) => {
+        const colorHexA = colorInfoA.match(/\(([^)]+)\)/)?.[1] || "#000000";
+        const colorHexB = colorInfoB.match(/\(([^)]+)\)/)?.[1] || "#000000";
+        const legoColorA = config.colorPalette.find((c) => c.hex === colorHexA);
+        const legoColorB = config.colorPalette.find((c) => c.hex === colorHexB);
+        const idA = legoColorA?.id || 999999;
+        const idB = legoColorB?.id || 999999;
+        return idA - idB;
+      })
+      .forEach(([colorInfo, count]) => {
+        const colorName = colorInfo.split(" (")[0];
+        const colorHex = colorInfo.match(/\(([^)]+)\)/)?.[1] || "#000000";
+        const legoColor = config.colorPalette.find((c) => c.hex === colorHex);
+        const legoId = legoColor?.id || "N/A";
+        
+        csvContent += `"${colorName}","${legoId}","${colorHex}",${count}\n`;
+      });
+
+    // Créer et télécharger le fichier CSV
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.download = `mosaic-pieces-list-${Date.now()}.csv`;
+    link.href = url;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -295,43 +366,6 @@ export function GeneratorPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Left Column - Upload and Configuration */}
           <div className="space-y-6">
-            {/* Configuration */}
-            <Card>
-              <CardHeader>
-                <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
-                  <Grid3X3 size={24} className="text-green-600" />
-                  <span>Configuration</span>
-                </h3>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="text-left">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Taille de la grille
-                    </label>
-                    <Select
-                      value={config.size.toString()}
-                      onValueChange={(value) =>
-                        updateConfig({
-                          size: parseInt(value) as 16 | 32 | 48 | 64,
-                        })
-                      }
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Sélectionnez une taille" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="16">16x16 (256 pièces)</SelectItem>
-                        <SelectItem value="32">32x32 (1024 pièces)</SelectItem>
-                        <SelectItem value="48">48x48 (2304 pièces)</SelectItem>
-                        <SelectItem value="64">64x64 (4096 pièces)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
             {/* Upload Area */}
             <Card>
               <CardHeader>
@@ -371,6 +405,162 @@ export function GeneratorPage() {
                   onChange={handleFileInputChange}
                   className="hidden"
                 />
+              </CardContent>
+            </Card>
+
+            {/* Configuration */}
+            <Card>
+              <CardHeader>
+                <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
+                  <Grid3X3 size={24} className="text-green-600" />
+                  <span>Configuration</span>
+                </h3>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="text-left">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Taille de la grille
+                    </label>
+                    <Select
+                      value={config.size.toString()}
+                      onValueChange={(value) =>
+                        updateConfig({
+                          size: parseInt(value) as 16 | 32 | 48 | 64,
+                        })
+                      }
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Sélectionnez une taille" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="16">
+                          <div className="flex items-center space-x-1">
+                            <Puzzle className="size-4 text-gray-900" />
+                            <span className="text-sm text-gray-900 font-medium">
+                              16x16
+                            </span>
+                            <span className="text-xs text-gray-600">
+                              (256 pièces)
+                            </span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="32">
+                          <div className="flex items-center space-x-1">
+                            <Puzzle className="size-4 text-gray-900" />
+                            <span className="text-sm text-gray-900 font-medium">
+                              32x32
+                            </span>
+                            <span className="text-xs text-gray-600">
+                              (1024 pièces)
+                            </span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="48">
+                          <div className="flex items-center space-x-1">
+                            <Puzzle className="size-4 text-gray-900" />
+                            <span className="text-sm text-gray-900 font-medium">
+                              48x48
+                            </span>
+                            <span className="text-xs text-gray-600">
+                              (2304 pièces)
+                            </span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="64">
+                          <div className="flex items-center space-x-1">
+                            <Puzzle className="size-4 text-gray-900" />
+                            <span className="text-sm text-gray-900 font-medium">
+                              64x64
+                            </span>
+                            <span className="text-xs text-gray-600">
+                              (4096 pièces)
+                            </span>
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="text-left">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Couleur de remplacement de la transparence (Import PNG)
+                    </label>
+                    <Select
+                      value={backgroundColorForTransparency.id.toString()}
+                      onValueChange={(value) => {
+                        if (value === "-1") {
+                          setBackgroundColorForTransparency(EMPTY_COLOR);
+                        } else {
+                          const selectedColor = config.colorPalette.find(
+                            (color) => color.id.toString() === value
+                          );
+                          if (selectedColor) {
+                            setBackgroundColorForTransparency(selectedColor);
+                          }
+                        }
+                      }}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue>
+                          <div className="flex items-center space-x-2">
+                            {backgroundColorForTransparency.id === -1 ? (
+                              <div className="w-6 h-6 border-2 border-dashed border-gray-400 rounded flex items-center justify-center">
+                                <span className="text-xs text-gray-500">∅</span>
+                              </div>
+                            ) : (
+                              <LegoBrick
+                                color={backgroundColorForTransparency}
+                                size="sm"
+                                showTooltip={false}
+                              />
+                            )}
+                            <span className="text-sm text-gray-900 font-medium">
+                              {backgroundColorForTransparency.name}
+                            </span>
+                            <span className="text-xs text-gray-600">
+                              {backgroundColorForTransparency.id !== -1 &&
+                                `#${backgroundColorForTransparency.id}`}
+                            </span>
+                          </div>
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent className="max-h-60">
+                        <SelectItem
+                          key={EMPTY_COLOR.id}
+                          value={EMPTY_COLOR.id.toString()}
+                        >
+                          <div className="flex items-center space-x-2">
+                            <div className="w-6 h-6 border-2 border-dashed border-gray-400 rounded flex items-center justify-center">
+                              <span className="text-xs text-gray-500">∅</span>
+                            </div>
+                            <span className="text-sm">{EMPTY_COLOR.name}</span>
+                          </div>
+                        </SelectItem>
+                        {config.colorPalette.map((color) => (
+                          <SelectItem
+                            key={color.id}
+                            value={color.id.toString()}
+                          >
+                            <div className="flex items-center space-x-2">
+                              <LegoBrick
+                                color={color}
+                                size="sm"
+                                showTooltip={false}
+                              />
+                              <span className="text-sm text-gray-900 font-medium">
+                                {color.name}
+                              </span>
+                              <span className="text-xs text-gray-600">
+                                #{color.id}
+                              </span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
               </CardContent>
             </Card>
 
@@ -430,12 +620,60 @@ export function GeneratorPage() {
                 pieceCount={mosaicResult.totalPieces}
                 colorCount={
                   mosaicResult.piecesList
-                    ? Object.keys(mosaicResult.piecesList).length
+                    ? Object.keys(mosaicResult.piecesList).filter(
+                        (key) =>
+                          !key.includes("Brique Technic") &&
+                          !key.includes("Connecteur") &&
+                          !key.includes("Plates 1x1")
+                      ).length
                     : 0
                 }
                 className="bg-white shadow-lg"
               />
             )}
+
+            {/* Téléchargements */}
+            {mosaicResult && mosaicCanvas && (
+              <Card>
+                <CardHeader>
+                  <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
+                    <Download size={24} className="text-green-600" />
+                    <span>Téléchargements</span>
+                  </h3>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <button
+                    onClick={downloadPNG}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
+                  >
+                    <Download size={20} />
+                    <span>Télécharger PNG</span>
+                  </button>
+                  <button
+                    onClick={downloadSVG}
+                    className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
+                  >
+                    <Download size={20} />
+                    <span>Télécharger SVG</span>
+                  </button>
+                  <button
+                    onClick={downloadPiecesList}
+                    className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
+                  >
+                    <Download size={20} />
+                    <span>Liste des pièces (CSV)</span>
+                  </button>
+                  <button
+                    onClick={downloadJSON}
+                    className="w-full bg-orange-600 hover:bg-orange-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
+                  >
+                    <Download size={20} />
+                    <span>Données JSON</span>
+                  </button>
+                </CardContent>
+              </Card>
+            )}
+
           </div>
 
           {/* Result Section */}
@@ -458,45 +696,6 @@ export function GeneratorPage() {
                   <p className="text-sm text-gray-600 mt-2">
                     Redimensionnement et mapping des couleurs LEGO...
                   </p>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Boutons de téléchargement */}
-            {mosaicResult && mosaicCanvas && (
-              <Card>
-                <CardHeader>
-                  <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
-                    <Download size={24} className="text-blue-600" />
-                    <span>Téléchargements</span>
-                  </h3>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <Button
-                      onClick={downloadPNG}
-                      className="w-full bg-blue-600 hover:bg-blue-700 py-3 flex items-center justify-center space-x-2"
-                    >
-                      <Download size={20} />
-                      <span>Télécharger PNG</span>
-                    </Button>
-
-                    <Button
-                      onClick={downloadSVG}
-                      className="w-full bg-green-600 hover:bg-green-700 py-3 flex items-center justify-center space-x-2"
-                    >
-                      <Download size={20} />
-                      <span>Télécharger SVG</span>
-                    </Button>
-
-                    <Button
-                      onClick={downloadJSON}
-                      className="w-full bg-purple-600 hover:bg-purple-700 py-3 flex items-center justify-center space-x-2"
-                    >
-                      <Download size={20} />
-                      <span>Liste des pièces (JSON)</span>
-                    </Button>
-                  </div>
                 </CardContent>
               </Card>
             )}
@@ -584,7 +783,7 @@ export function GeneratorPage() {
                                   {colorName}
                                 </div>
                                 <div className="text-xs text-gray-500">
-                                  ID: {legoColor?.id || "N/A"}
+                                  #{legoColor?.id || "N/A"}
                                 </div>
                               </div>
                             </div>
@@ -619,7 +818,7 @@ export function GeneratorPage() {
                           <div className="font-medium text-gray-900 text-sm">
                             Pièces 1x1
                           </div>
-                          <div className="text-xs text-gray-500">ID: 3024</div>
+                          <div className="text-xs text-gray-500">#3024</div>
                         </div>
                       </div>
                       <div className="text-right">

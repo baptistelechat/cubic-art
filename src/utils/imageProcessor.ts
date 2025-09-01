@@ -176,19 +176,59 @@ function resizeImageToGrid(
   return ctx.getImageData(0, 0, gridSize, gridSize);
 }
 
-// Extrait les couleurs RGB de l'ImageData
-function extractRGBGrid(imageData: ImageData): [number, number, number][][] {
-  const grid: [number, number, number][][] = [];
+// Extrait les couleurs RGB de l'ImageData avec gestion de la transparence
+function extractRGBGrid(
+  imageData: ImageData,
+  backgroundColorForTransparency?: LegoColor
+): ([number, number, number] | null)[][] {
+  const grid: ([number, number, number] | null)[][] = [];
   const { data, width, height } = imageData;
 
+  // Couleur de fond par défaut (blanc) si aucune couleur n'est spécifiée
+  const defaultBackground = backgroundColorForTransparency?.rgb || [
+    255, 255, 255,
+  ];
+  const isEmptyMode = backgroundColorForTransparency?.id === -1;
+
   for (let y = 0; y < height; y++) {
-    const row: [number, number, number][] = [];
+    const row: ([number, number, number] | null)[] = [];
     for (let x = 0; x < width; x++) {
       const index = (y * width + x) * 4;
       const r = data[index];
       const g = data[index + 1];
       const b = data[index + 2];
-      row.push([r, g, b]);
+      const alpha = data[index + 3];
+
+      // Gestion de la transparence
+      if (alpha <= 128) {
+        // Pixel complètement transparent
+        if (isEmptyMode) {
+          // Mode "Vide" : retourner null pour les pixels complètement transparents
+          row.push(null);
+        } else {
+          // Remplacer par la couleur de fond
+          row.push([defaultBackground[0], defaultBackground[1], defaultBackground[2]]);
+        }
+      } else if (alpha < 255) {
+        // Pixel semi-transparent - toujours mélanger avec la couleur de fond
+        const opacity = alpha / 255;
+
+        // Mélange alpha avec la couleur de fond
+        const blendedR = Math.round(
+          r * opacity + defaultBackground[0] * (1 - opacity)
+        );
+        const blendedG = Math.round(
+          g * opacity + defaultBackground[1] * (1 - opacity)
+        );
+        const blendedB = Math.round(
+          b * opacity + defaultBackground[2] * (1 - opacity)
+        );
+
+        row.push([blendedR, blendedG, blendedB]);
+      } else {
+        // Pixel opaque - utiliser la couleur originale
+        row.push([r, g, b]);
+      }
     }
     grid.push(row);
   }
@@ -196,9 +236,23 @@ function extractRGBGrid(imageData: ImageData): [number, number, number][][] {
   return grid;
 }
 
+// Couleur spéciale pour les emplacements vides
+const EMPTY_LEGO_COLOR: LegoColor = {
+  id: -1,
+  name: "Vide",
+  hex: "#transparent",
+  rgb: [0, 0, 0],
+};
+
 // Mappe les couleurs RGB vers les couleurs LEGO
-function mapToLegoColors(rgbGrid: [number, number, number][][]): LegoColor[][] {
-  return rgbGrid.map((row) => row.map((rgb) => findClosestLegoColor(rgb)));
+function mapToLegoColors(
+  rgbGrid: ([number, number, number] | null)[][]
+): LegoColor[][] {
+  return rgbGrid.map((row) =>
+    row.map((rgb) =>
+      rgb === null ? EMPTY_LEGO_COLOR : findClosestLegoColor(rgb)
+    )
+  );
 }
 
 // Génère la liste des pièces nécessaires
@@ -206,6 +260,9 @@ function generatePiecesList(legoGrid: LegoColor[][]): Record<string, number> {
   const piecesList: Record<string, number> = {};
 
   legoGrid.flat().forEach((color) => {
+    // Exclure les pièces "Vide" du décompte
+    if (color.id === -1) return;
+
     const key = `${color.name} (${color.hex})`;
     piecesList[key] = (piecesList[key] || 0) + 1;
   });
@@ -221,7 +278,10 @@ function generatePiecesCoordinates(
 
   legoGrid.forEach((row, y) => {
     row.forEach((color, x) => {
-      pieces.push({ x, y, color });
+      // Exclure les pièces "Vide" des coordonnées
+      if (color.id !== -1) {
+        pieces.push({ x, y, color });
+      }
     });
   });
 
@@ -231,7 +291,8 @@ function generatePiecesCoordinates(
 // Fonction principale de traitement d'image
 export async function processImageToMosaic(
   imageFile: File,
-  config: MosaicConfig
+  config: MosaicConfig,
+  backgroundColorForTransparency?: LegoColor
 ): Promise<MosaicResult> {
   const startTime = performance.now();
 
@@ -252,8 +313,11 @@ export async function processImageToMosaic(
         // 1. Redimensionnement selon la taille configurée
         const resizedImageData = resizeImageToGrid(img, gridSize);
 
-        // 2. Extraction de la grille RGB
-        const rgbGrid = extractRGBGrid(resizedImageData);
+        // 2. Extraction de la grille RGB avec gestion de la transparence
+        const rgbGrid = extractRGBGrid(
+          resizedImageData,
+          backgroundColorForTransparency
+        );
 
         // 3. Mapping vers les couleurs LEGO
         const legoGrid = mapToLegoColors(rgbGrid);
@@ -354,12 +418,23 @@ export function generateMosaicPreview(
 
   result.grid.forEach((row, y) => {
     row.forEach((color, x) => {
-      if (color) {
-        // Position et taille de la brique
-        const brickX = x * adjustedScale;
-        const brickY = y * adjustedScale;
-        const brickSize = adjustedScale;
+      // Position et taille de la brique
+      const brickX = x * adjustedScale;
+      const brickY = y * adjustedScale;
+      const brickSize = adjustedScale;
 
+      if (color && color.id === -1) {
+        // Dessiner les emplacements "Vide" avec transparence alpha à 0
+        ctx.fillStyle = "rgba(0, 0, 0, 0)";
+        ctx.fillRect(brickX, brickY, brickSize, brickSize);
+        
+        // Ajouter une bordure visible pour les cases vides
+        ctx.strokeStyle = "rgba(220, 220, 220, 0.7)"; // Gris très clair pour meilleure visibilité
+        // Calcul adaptatif pour les hautes résolutions (64x64)
+        const minLineWidth = gridSize >= 64 ? 2 : 1;
+        ctx.lineWidth = Math.max(minLineWidth, adjustedScale * 0.08); // Épaisseur augmentée
+        ctx.strokeRect(brickX, brickY, brickSize, brickSize);
+      } else if (color && color.id !== -1) {
         // Dessiner la brique avec effet 3D
         // Base de la brique
         ctx.fillStyle = color.hex;
