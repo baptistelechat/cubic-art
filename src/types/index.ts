@@ -21,7 +21,7 @@ export interface LegoColor {
 export interface MosaicConfig {
   size: 16 | 32 | 48 | 64; // Tailles modulaires supportées
   colorPalette: LegoColor[]; // Couleurs LEGO officielles
-  brickType: '1x1'; // Type de brique LEGO pour les pixels
+  brickType: "1x1"; // Type de brique LEGO pour les pixels
 }
 
 // Résultat de la transformation
@@ -29,9 +29,9 @@ export interface MosaicResult {
   imageData: MosaicImageData;
   config: MosaicConfig;
   grid: LegoColor[][];
-  exportFormats: ('png' | 'svg' | 'json')[];
+  exportFormats: ("png" | "svg" | "json")[];
   processingTime: number;
-  pieces: Array<{x: number, y: number, color: LegoColor}>;
+  pieces: Array<{ x: number; y: number; color: LegoColor }>;
   colors?: LegoColor[];
   colorCount?: Record<string, number>;
   modularElements?: {
@@ -70,8 +70,8 @@ export interface AppState {
 export interface LocalStorageData {
   userPreferences: {
     defaultConfig: MosaicConfig;
-    theme: 'light' | 'dark';
-    language: 'fr' | 'en';
+    theme: "light" | "dark";
+    language: "fr" | "en";
   };
   recentImages: MosaicImageData[];
   favoriteResults: MosaicResult[];
@@ -80,11 +80,11 @@ export interface LocalStorageData {
 
 // Pipeline de traitement
 export interface ProcessingPipeline {
-  1: 'imageResize';
-  2: 'colorQuantization';
-  3: 'gridMapping';
-  4: 'brickPlacement';
-  5: 'renderGeneration';
+  1: "imageResize";
+  2: "colorQuantization";
+  3: "gridMapping";
+  4: "brickPlacement";
+  5: "renderGeneration";
 }
 
 // Types RGB

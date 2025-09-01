@@ -1,3 +1,4 @@
+import { LegoBrick } from "@/components/LegoBrick";
 import { MosaicComparison } from "@/components/MosaicComparison";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -8,12 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { useStore } from "@/hooks/useStore";
 import type { MosaicResult } from "@/types";
 import {
@@ -203,12 +199,14 @@ export function GeneratorPage() {
       setIsProcessing(false);
     } catch (error) {
       console.error("Erreur lors du traitement:", error);
-      setError("Erreur lors du traitement de l'image. Veuillez réessayer.");
+      setError(
+        "Erreur lors du traitement de l'image. Veuillez réessayer avec une autre image."
+      );
       setIsProcessing(false);
     }
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setDragActive(false);
 
@@ -216,17 +214,17 @@ export function GeneratorPage() {
     if (files.length > 0) {
       handleFileSelect(files[0]);
     }
-  };
+  }, []);
 
-  const handleDragOver = (e: React.DragEvent) => {
+  const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setDragActive(true);
-  };
+  }, []);
 
-  const handleDragLeave = (e: React.DragEvent) => {
+  const handleDragLeave = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setDragActive(false);
-  };
+  }, []);
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -247,15 +245,13 @@ export function GeneratorPage() {
   const downloadSVG = () => {
     if (!mosaicResult) return;
 
-    const svg = generateSVG(mosaicResult);
-    const blob = new Blob([svg], { type: "image/svg+xml" });
+    const svgContent = generateSVG(mosaicResult);
+    const blob = new Blob([svgContent], { type: "image/svg+xml" });
     const url = URL.createObjectURL(blob);
-
     const link = document.createElement("a");
     link.download = `mosaic-${Date.now()}.svg`;
     link.href = url;
     link.click();
-
     URL.revokeObjectURL(url);
   };
 
@@ -275,12 +271,10 @@ export function GeneratorPage() {
       type: "application/json",
     });
     const url = URL.createObjectURL(blob);
-
     const link = document.createElement("a");
     link.download = `mosaic-pieces-${Date.now()}.json`;
     link.href = url;
     link.click();
-
     URL.revokeObjectURL(url);
   };
 
@@ -299,19 +293,19 @@ export function GeneratorPage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Upload Section */}
+          {/* Left Column - Upload and Configuration */}
           <div className="space-y-6">
-            {/* Grid Configuration */}
+            {/* Configuration */}
             <Card>
               <CardHeader>
-                <h2 className="text-xl font-semibold text-gray-900 flex items-center space-x-2">
-                  <Grid3X3 size={24} className="text-purple-600" />
-                  <span>Configuration de la grille</span>
-                </h2>
+                <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
+                  <Grid3X3 size={24} className="text-green-600" />
+                  <span>Configuration</span>
+                </h3>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4 text-left">
-                  <div>
+                <div className="space-y-4">
+                  <div className="text-left">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Taille de la grille
                     </label>
@@ -334,29 +328,24 @@ export function GeneratorPage() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <p className="text-sm text-gray-600">
-                    Choisissez la taille de votre mosaïque LEGO modulaire. Plus
-                    la grille est grande, plus les détails seront précis, mais
-                    plus vous aurez besoin de pièces.
-                  </p>
                 </div>
               </CardContent>
             </Card>
 
+            {/* Upload Area */}
             <Card>
               <CardHeader>
-                <h2 className="text-xl font-semibold text-gray-900 flex items-center space-x-2">
+                <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
                   <Upload size={24} className="text-blue-600" />
-                  <span>Sélectionner une image</span>
-                </h2>
+                  <span>Uploader votre image</span>
+                </h3>
               </CardHeader>
               <CardContent>
-                {/* Drop Zone */}
                 <div
                   className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
                     dragActive
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-300 hover:border-blue-400 hover:bg-gray-50"
+                      ? "border-blue-400 bg-blue-50"
+                      : "border-gray-300 hover:border-gray-400"
                   }`}
                   onDrop={handleDrop}
                   onDragOver={handleDragOver}
@@ -432,6 +421,21 @@ export function GeneratorPage() {
                 </CardContent>
               </Card>
             )}
+
+            {/* Aperçu de la mosaïque */}
+            {mosaicResult && mosaicCanvas && previewUrl && (
+              <MosaicComparison
+                originalImage={previewUrl}
+                mosaicCanvas={mosaicCanvas}
+                pieceCount={mosaicResult.totalPieces}
+                colorCount={
+                  mosaicResult.piecesList
+                    ? Object.keys(mosaicResult.piecesList).length
+                    : 0
+                }
+                className="bg-white shadow-lg"
+              />
+            )}
           </div>
 
           {/* Result Section */}
@@ -458,20 +462,7 @@ export function GeneratorPage() {
               </Card>
             )}
 
-            {mosaicResult && mosaicCanvas && previewUrl && (
-              <MosaicComparison
-                originalImage={previewUrl}
-                mosaicCanvas={mosaicCanvas}
-                pieceCount={mosaicResult.totalPieces}
-                colorCount={
-                  mosaicResult.piecesList
-                    ? Object.keys(mosaicResult.piecesList).length
-                    : 0
-                }
-                className="bg-white shadow-lg"
-              />
-            )}
-
+            {/* Boutons de téléchargement */}
             {mosaicResult && mosaicCanvas && (
               <Card>
                 <CardHeader>
@@ -510,7 +501,7 @@ export function GeneratorPage() {
               </Card>
             )}
 
-            {/* Color Palette Info */}
+            {/* Palette LEGO officielle complète */}
             <Card>
               <CardHeader>
                 <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
@@ -522,51 +513,133 @@ export function GeneratorPage() {
                 <TooltipProvider>
                   <div className="grid grid-cols-10 gap-3 mb-4">
                     {config.colorPalette.map((color) => (
-                      <Tooltip key={color.id}>
-                        <TooltipTrigger asChild>
-                          <div
-                            className="relative w-10 h-10 cursor-pointer transition-all duration-200 hover:scale-105 group"
-                            style={{
-                              backgroundColor: color.hex,
-                              boxShadow: `
-                                inset -1px -1px 2px rgba(0,0,0,0.15),
-                                inset 1px 1px 2px rgba(255,255,255,0.2),
-                                1px 1px 3px rgba(0,0,0,0.1)
-                              `,
-                            }}
-                          >
-                            {/* Cercle central de la brique LEGO */}
-                            <div
-                              className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-5 h-5 rounded-full"
-                              style={{
-                                backgroundColor: color.hex,
-                                boxShadow: `
-                                  inset -1px -1px 2px rgba(0,0,0,0.4),
-                                  inset 1px 1px 2px rgba(255,255,255,0.6),
-                                  0 1px 2px rgba(0,0,0,0.3)
-                                `,
-                                filter: "brightness(1.1)",
-                              }}
-                            ></div>
-
-                            {/* Effet de brillance sur hover */}
-                            <div className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-200 bg-white pointer-events-none"></div>
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <div className="text-center">
-                            <div className="font-medium">{color.name}</div>
-                            <div className="text-xs opacity-70">
-                              ID: {color.id}
-                            </div>
-                          </div>
-                        </TooltipContent>
-                      </Tooltip>
+                      <LegoBrick
+                        key={color.id}
+                        color={color}
+                        size="md"
+                        showTooltip={true}
+                      />
                     ))}
                   </div>
                 </TooltipProvider>
               </CardContent>
             </Card>
+
+            {/* Décomposition des pièces par couleurs */}
+            {mosaicResult && mosaicResult.piecesList && (
+              <Card>
+                <CardHeader>
+                  <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
+                    <Palette size={24} className="text-purple-600" />
+                    <span>Décomposition des pièces par couleurs</span>
+                  </h3>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {Object.entries(mosaicResult.piecesList)
+                      .filter(
+                        ([key]) =>
+                          !key.includes("Brique Technic") &&
+                          !key.includes("Connecteur") &&
+                          !key.includes("Plates 1x1")
+                      )
+                      .sort(([colorInfoA], [colorInfoB]) => {
+                        const colorHexA =
+                          colorInfoA.match(/\(([^)]+)\)/)?.[1] || "#000000";
+                        const colorHexB =
+                          colorInfoB.match(/\(([^)]+)\)/)?.[1] || "#000000";
+                        const legoColorA = config.colorPalette.find(
+                          (c) => c.hex === colorHexA
+                        );
+                        const legoColorB = config.colorPalette.find(
+                          (c) => c.hex === colorHexB
+                        );
+                        const idA = legoColorA?.id || 999999;
+                        const idB = legoColorB?.id || 999999;
+                        return idA - idB;
+                      })
+                      .map(([colorInfo, count]) => {
+                        const colorName = colorInfo.split(" (")[0];
+                        const colorHex =
+                          colorInfo.match(/\(([^)]+)\)/)?.[1] || "#000000";
+                        const legoColor = config.colorPalette.find(
+                          (c) => c.hex === colorHex
+                        );
+
+                        return (
+                          <div
+                            key={colorInfo}
+                            className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                          >
+                            <div className="flex items-center space-x-2">
+                              {legoColor && (
+                                <LegoBrick
+                                  color={legoColor}
+                                  size="md"
+                                  showTooltip={false}
+                                />
+                              )}
+                              <div className="text-left">
+                                <div className="font-medium text-gray-900 text-sm">
+                                  {colorName}
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                  ID: {legoColor?.id || "N/A"}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="font-bold text-lg text-gray-900">
+                                {count}
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                pièces
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+
+                  {/* Total des pièces colorées avec brique LEGO blanche */}
+                  <div className="border-t mt-3">
+                    <div className="flex items-center justify-between p-3 rounded-lg text-gray-900">
+                      <div className="flex items-center space-x-3">
+                        <LegoBrick
+                          color={{
+                            id: 302401,
+                            name: "White",
+                            hex: "#f4f4f4",
+                            rgb: [244, 244, 244],
+                          }}
+                          size="md"
+                          showTooltip={false}
+                        />
+                        <div className="text-left">
+                          <div className="font-medium text-gray-900 text-sm">
+                            Pièces 1x1
+                          </div>
+                          <div className="text-xs text-gray-500">ID: 3024</div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-bold text-xl">
+                          {Object.entries(mosaicResult.piecesList)
+                            .filter(
+                              ([key]) =>
+                                !key.includes("Brique Technic") &&
+                                !key.includes("Connecteur") &&
+                                !key.includes("Plates 1x1")
+                            )
+                            .reduce((sum, [, count]) => sum + count, 0)}
+                        </div>
+                        <div className="text-sm text-gray-600">pièces</div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       </div>
