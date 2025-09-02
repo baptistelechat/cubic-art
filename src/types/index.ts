@@ -44,7 +44,7 @@ export interface MosaicResult {
       quantity: number;
     };
     plates1x1: {
-      reference: string; // LEGO Plate 1x1 (réf. 3024)
+      reference: string; // LEGO Pièces 1x1 (réf. 3024)
       quantity: number;
     };
   };

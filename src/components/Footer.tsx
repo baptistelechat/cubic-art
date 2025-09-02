@@ -66,7 +66,7 @@ export function Footer() {
             <ul className="space-y-2 text-sm text-gray-400">
               <li>• Système modulaire LEGO Technic</li>
               <li>• Tailles : 16x16, 32x32, 48x48, 64x64</li>
-              <li>• Briques Technic 16x16 (LEGO 65803)</li>
+              <li>• Plaques de base Technic 16x16 (LEGO 65803)</li>
               <li>• Connecteurs Technic (LEGO 61332)</li>
               <li>• Pièces 1x1 (LEGO 3024)</li>
               <li>• Couleurs LEGO officielles</li>

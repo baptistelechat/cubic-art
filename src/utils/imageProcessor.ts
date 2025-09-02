@@ -36,22 +36,15 @@ function adjustBrightness(hex: string, percent: number): string {
   return `#${toHex(adjustedR)}${toHex(adjustedG)}${toHex(adjustedB)}`;
 }
 
-// ===== VARIABLES DE CONFIGURATION MODULAIRE =====
-// Modifiez ces valeurs pour tester différentes tailles de mosaïques
-// Configurations supportées :
-// - 16x16 : 1 brique Technic (1x1)
-// - 32x32 : 4 briques Technic (2x2) + 2 connecteurs
-// - 48x48 : 9 briques Technic (3x3) + 6 connecteurs
-// - 64x64 : 16 briques Technic (4x4) + 12 connecteurs
 // Les constantes de grille sont maintenant calculées dynamiquement selon config.size
 
 // Éléments LEGO Technic pour système modulaire
-const TECHNIC_BRICK_SIZE = 16; // Taille d'une brique Technic 16x16
-const TECHNIC_BRICK_REF = "65803"; // BRICK 4/3, 16X16 W/ 4.85 HOLE
+const TECHNIC_BASEPLATE_SIZE = 16; // Taille d'une Plaque de base Technic 16x16
+const TECHNIC_BASEPLATE_REF = "65803"; // BRICK 4/3, 16X16 W/ 4.85 HOLE
 const CONNECTOR_PEG_REF = "61332"; // CONNECTOR PEG W. FRICTION
-const PLATE_1X1_REF = "3024"; // Plate 1x1 (conservée)
+const PLATE_1X1_REF = "3024"; // Pièces 1x1 (conservée)
 
-// Calcul du nombre de briques Technic nécessaires
+// Calcul du nombre de plaques de base Technic nécessaires
 // Les constantes sont maintenant calculées dynamiquement dans processImageToMosaic
 
 // Fonction utilitaire pour calculer le nombre de connecteurs nécessaires
@@ -61,7 +54,7 @@ function calculateConnectorsNeeded(technicBricksPerSide: number): number {
 
 // Fonction utilitaire pour calculer les éléments modulaires
 function calculateModularElements(gridSize: number) {
-  const bricksPerSide = Math.ceil(gridSize / TECHNIC_BRICK_SIZE);
+  const bricksPerSide = Math.ceil(gridSize / TECHNIC_BASEPLATE_SIZE);
   const totalBricks = bricksPerSide * bricksPerSide;
   const connectorsNeeded = Math.max(0, (bricksPerSide - 1) * bricksPerSide * 2);
 
@@ -91,7 +84,7 @@ export function getModularConfiguration(gridSize: number) {
     gridSize,
     totalPieces: gridSize * gridSize,
     technicBricks: {
-      ref: TECHNIC_BRICK_REF,
+      ref: TECHNIC_BASEPLATE_REF,
       name: "BRICK 4/3, 16X16 W/ 4.85 HOLE",
       quantity: modular.totalBricks,
       arrangement: `${modular.bricksPerSide}x${modular.bricksPerSide}`,
@@ -103,7 +96,7 @@ export function getModularConfiguration(gridSize: number) {
     },
     plates1x1: {
       ref: PLATE_1X1_REF,
-      name: "Plate 1x1",
+      name: "Pièce 1x1",
       quantity: gridSize * gridSize,
     },
     description: modular.configuration,
@@ -318,7 +311,9 @@ export async function processImageToMosaic(
         // Calcul des constantes selon la taille configurée
         const gridSize = config.size;
         const totalPieces = gridSize * gridSize;
-        const technicBricksPerSide = Math.ceil(gridSize / TECHNIC_BRICK_SIZE);
+        const technicBricksPerSide = Math.ceil(
+          gridSize / TECHNIC_BASEPLATE_SIZE
+        );
         const totalTechnicBricks = technicBricksPerSide * technicBricksPerSide;
         const connectorsNeeded =
           calculateConnectorsNeeded(technicBricksPerSide);
@@ -352,9 +347,10 @@ export async function processImageToMosaic(
 
         // 6. Calcul des éléments modulaires nécessaires
         const modulePiecesList = {
-          [`Brique Technic 16x16 (${TECHNIC_BRICK_REF})`]: totalTechnicBricks,
+          [`Plaque de base Technic 16x16 (${TECHNIC_BASEPLATE_REF})`]:
+            totalTechnicBricks,
           [`Connecteur Technic (${CONNECTOR_PEG_REF})`]: connectorsNeeded,
-          [`Plates 1x1 (${PLATE_1X1_REF})`]: totalPieces,
+          [`Pièce 1x1 (${PLATE_1X1_REF})`]: totalPieces,
         };
 
         // 7. Résultat final avec système modulaire
@@ -366,7 +362,7 @@ export async function processImageToMosaic(
           processingTime,
           pieces,
           plaqueDeBase: {
-            ref: `${totalTechnicBricks}x Brique Technic ${TECHNIC_BRICK_REF}`,
+            ref: `${totalTechnicBricks}x Plaque de base Technic ${TECHNIC_BASEPLATE_REF}`,
             size: `${gridSize}x${gridSize} (${technicBricksPerSide}x${technicBricksPerSide} briques)`,
           },
           totalPieces: totalPieces,

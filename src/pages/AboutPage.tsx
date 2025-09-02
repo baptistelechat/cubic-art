@@ -180,7 +180,7 @@ export function AboutPage() {
                 Combien coûte en moyenne une mosaïque ?
               </AccordionTrigger>
               <AccordionContent>
-                Le coût varie selon la taille et les couleurs utilisées. Une mosaïque 32x32 coûte environ 60-80€ (briques Technic et connecteurs inclus), tandis qu'une 64x64 peut atteindre 300-400€. Les couleurs rares peuvent augmenter le prix. L'estimation de coût dans l'export vous donnera une idée précise selon votre design.
+                Le coût varie selon la taille et les couleurs utilisées. Une mosaïque 32x32 coûte environ 60-80€ (plaques de base Technic et connecteurs inclus), tandis qu'une 64x64 peut atteindre 300-400€. Les couleurs rares peuvent augmenter le prix. L'estimation de coût dans l'export vous donnera une idée précise selon votre design.
               </AccordionContent>
             </AccordionItem>
             

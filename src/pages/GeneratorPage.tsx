@@ -1,5 +1,11 @@
 import { LegoBrick } from "@/components/LegoBrick";
 import { MosaicComparison } from "@/components/MosaicComparison";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
@@ -23,6 +29,7 @@ import {
   Image as ImageIcon,
   Palette,
   Puzzle,
+  Settings,
   Upload,
 } from "lucide-react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
@@ -244,6 +251,7 @@ export function GeneratorPage() {
     if (files.length > 0) {
       handleFileSelect(files[0]);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
@@ -317,9 +325,9 @@ export function GeneratorPage() {
     Object.entries(mosaicResult.piecesList)
       .filter(
         ([key]) =>
-          !key.includes("Brique Technic") &&
+          !key.includes("Plaque de base Technic") &&
           !key.includes("Connecteur") &&
-          !key.includes("Plates 1x1")
+          !key.includes("Pièce 1x1")
       )
       .sort(([colorInfoA], [colorInfoB]) => {
         const colorHexA = colorInfoA.match(/\(([^)]+)\)/)?.[1] || "#000000";
@@ -690,9 +698,9 @@ export function GeneratorPage() {
                         mosaicResult.piecesList
                           ? Object.keys(mosaicResult.piecesList).filter(
                               (key) =>
-                                !key.includes("Brique Technic") &&
+                                !key.includes("Plaque de base Technic") &&
                                 !key.includes("Connecteur") &&
-                                !key.includes("Plates 1x1")
+                                !key.includes("Pièce 1x1")
                             ).length
                           : 0
                       }
@@ -742,125 +750,235 @@ export function GeneratorPage() {
                     </Card>
                   </div>
 
-                  {/* Colonne droite : Décomposition des pièces par couleurs */}
+                  {/* Colonne droite : Décomposition des pièces organisée */}
                   <div>
                     <Card>
                       <CardHeader>
                         <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
                           <Palette size={24} className="text-purple-600" />
-                          <span>Décomposition des pièces par couleurs</span>
+                          <span>Décomposition des pièces</span>
                         </h3>
                       </CardHeader>
                       <CardContent>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                          {Object.entries(mosaicResult.piecesList)
-                            .filter(
-                              ([key]) =>
-                                !key.includes("Brique Technic") &&
-                                !key.includes("Connecteur") &&
-                                !key.includes("Plates 1x1")
-                            )
-                            .sort(([colorInfoA], [colorInfoB]) => {
-                              const colorHexA =
-                                colorInfoA.match(/\(([^)]+)\)/)?.[1] ||
-                                "#000000";
-                              const colorHexB =
-                                colorInfoB.match(/\(([^)]+)\)/)?.[1] ||
-                                "#000000";
-                              const legoColorA = config.colorPalette.find(
-                                (c) => c.hex === colorHexA
-                              );
-                              const legoColorB = config.colorPalette.find(
-                                (c) => c.hex === colorHexB
-                              );
-                              const idA = legoColorA?.id || 999999;
-                              const idB = legoColorB?.id || 999999;
-                              return idA - idB;
-                            })
-                            .map(([colorInfo, count]) => {
-                              const colorName = colorInfo.split(" (")[0];
-                              const colorHex =
-                                colorInfo.match(/\(([^)]+)\)/)?.[1] ||
-                                "#000000";
-                              const legoColor = config.colorPalette.find(
-                                (c) => c.hex === colorHex
-                              );
+                        <Accordion
+                          type="multiple"
+                          defaultValue={["plates-1x1"]}
+                          className="w-full"
+                        >
+                          {/* Section Pièces 1x1 par couleur */}
+                          <AccordionItem value="plates-1x1">
+                            <AccordionTrigger className="text-left hover:no-underline">
+                              <div className="flex items-center space-x-2">
+                                <div className="w-3 h-3 bg-gradient-to-r from-red-500 via-green-500 to-blue-500 rounded-full"></div>
+                                <span className="font-medium">Pièces 1x1</span>
+                                <span className="text-sm text-gray-500">
+                                  (
+                                  {
+                                    Object.entries(
+                                      mosaicResult.piecesList
+                                    ).filter(
+                                      ([key]) =>
+                                        !key.includes(
+                                          "Plaque de base Technic"
+                                        ) &&
+                                        !key.includes("Connecteur") &&
+                                        !key.includes("Pièce 1x1")
+                                    ).length
+                                  }{" "}
+                                  couleurs)
+                                </span>
+                              </div>
+                            </AccordionTrigger>
+                            <AccordionContent>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 p-2">
+                                {Object.entries(mosaicResult.piecesList)
+                                  .filter(
+                                    ([key]) =>
+                                      !key.includes("Plaque de base Technic") &&
+                                      !key.includes("Connecteur") &&
+                                      !key.includes("Pièce 1x1")
+                                  )
+                                  .sort(([colorInfoA], [colorInfoB]) => {
+                                    const colorHexA =
+                                      colorInfoA.match(/\(([^)]+)\)/)?.[1] ||
+                                      "#000000";
+                                    const colorHexB =
+                                      colorInfoB.match(/\(([^)]+)\)/)?.[1] ||
+                                      "#000000";
+                                    const legoColorA = config.colorPalette.find(
+                                      (c) => c.hex === colorHexA
+                                    );
+                                    const legoColorB = config.colorPalette.find(
+                                      (c) => c.hex === colorHexB
+                                    );
+                                    const idA = legoColorA?.id || 999999;
+                                    const idB = legoColorB?.id || 999999;
+                                    return idA - idB;
+                                  })
+                                  .map(([colorInfo, count]) => {
+                                    const colorName = colorInfo.split(" (")[0];
+                                    const colorHex =
+                                      colorInfo.match(/\(([^)]+)\)/)?.[1] ||
+                                      "#000000";
+                                    const legoColor = config.colorPalette.find(
+                                      (c) => c.hex === colorHex
+                                    );
 
-                              return (
-                                <div
-                                  key={colorInfo}
-                                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                                >
-                                  <div className="flex items-center space-x-2">
-                                    {legoColor && (
-                                      <LegoBrick
-                                        color={legoColor}
-                                        size="md"
-                                        showTooltip={false}
-                                      />
-                                    )}
+                                    return (
+                                      <div
+                                        key={colorInfo}
+                                        className="flex items-center justify-between p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                                      >
+                                        <div className="flex items-center space-x-2">
+                                          {legoColor && (
+                                            <LegoBrick
+                                              color={legoColor}
+                                              size="md"
+                                              showTooltip={false}
+                                            />
+                                          )}
+                                          <div className="text-left">
+                                            <div className="font-medium text-gray-900 text-sm">
+                                              {colorName}
+                                            </div>
+                                            <div className="text-xs text-gray-500">
+                                              #3024 | {legoColor?.id || "N/A"}
+                                            </div>
+                                          </div>
+                                        </div>
+                                        <div className="text-right">
+                                          <div className="font-bold text-lg text-gray-900">
+                                            {count}
+                                          </div>
+                                          <div className="text-xs text-gray-500">
+                                            pièce{count > 1 ? "s" : ""}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                              </div>
+
+                              {/* Total des pièces 1x1 avec brique LEGO blanche */}
+                              <div className="border-t mt-3">
+                                <div className="flex items-center justify-between p-3 rounded-lg text-gray-900">
+                                  <div className="flex items-center space-x-3">
+                                    <LegoBrick
+                                      color={{
+                                        id: 302401,
+                                        name: "White",
+                                        hex: "#f4f4f4",
+                                        rgb: [244, 244, 244],
+                                      }}
+                                      size="md"
+                                      showTooltip={false}
+                                    />
                                     <div className="text-left">
                                       <div className="font-medium text-gray-900 text-sm">
-                                        {colorName}
+                                        Total Pièces 1x1
                                       </div>
                                       <div className="text-xs text-gray-500">
-                                        #{legoColor?.id || "N/A"}
+                                        #3024
                                       </div>
                                     </div>
                                   </div>
                                   <div className="text-right">
-                                    <div className="font-bold text-lg text-gray-900">
-                                      {count}
+                                    <div className="font-bold text-xl">
+                                      {Object.entries(mosaicResult.piecesList)
+                                        .filter(
+                                          ([key]) =>
+                                            !key.includes(
+                                              "Plaque de base Technic"
+                                            ) &&
+                                            !key.includes("Connecteur") &&
+                                            !key.includes("Pièce 1x1")
+                                        )
+                                        .reduce(
+                                          (sum, [, count]) => sum + count,
+                                          0
+                                        )}
                                     </div>
-                                    <div className="text-xs text-gray-500">
+                                    <div className="text-sm text-gray-600">
                                       pièces
                                     </div>
                                   </div>
                                 </div>
-                              );
-                            })}
-                        </div>
-
-                        {/* Total des pièces colorées avec brique LEGO blanche */}
-                        <div className="border-t mt-3">
-                          <div className="flex items-center justify-between p-3 rounded-lg text-gray-900">
-                            <div className="flex items-center space-x-3">
-                              <LegoBrick
-                                color={{
-                                  id: 302401,
-                                  name: "White",
-                                  hex: "#f4f4f4",
-                                  rgb: [244, 244, 244],
-                                }}
-                                size="md"
-                                showTooltip={false}
-                              />
-                              <div className="text-left">
-                                <div className="font-medium text-gray-900 text-sm">
-                                  Pièces 1x1
-                                </div>
-                                <div className="text-xs text-gray-500">
-                                  #3024
-                                </div>
                               </div>
-                            </div>
-                            <div className="text-right">
-                              <div className="font-bold text-xl">
+                            </AccordionContent>
+                          </AccordionItem>
+
+                          {/* Section Éléments techniques */}
+                          <AccordionItem value="technical-elements">
+                            <AccordionTrigger className="text-left hover:no-underline">
+                              <div className="flex items-center space-x-2">
+                                <Settings className="w-4 h-4 text-gray-600" />
+                                <span className="font-medium">
+                                  Éléments techniques
+                                </span>
+                                <span className="text-sm text-gray-500">
+                                  (
+                                  {
+                                    Object.entries(
+                                      mosaicResult.piecesList
+                                    ).filter(
+                                      ([key]) =>
+                                        key.includes(
+                                          "Plaque de base Technic"
+                                        ) || key.includes("Connecteur")
+                                    ).length
+                                  }{" "}
+                                  types)
+                                </span>
+                              </div>
+                            </AccordionTrigger>
+                            <AccordionContent>
+                              <div className="space-y-2 p-2">
                                 {Object.entries(mosaicResult.piecesList)
                                   .filter(
                                     ([key]) =>
-                                      !key.includes("Brique Technic") &&
-                                      !key.includes("Connecteur") &&
-                                      !key.includes("Plates 1x1")
+                                      key.includes("Plaque de base Technic") ||
+                                      key.includes("Connecteur")
                                   )
-                                  .reduce((sum, [, count]) => sum + count, 0)}
+                                  .map(([elementInfo, count]) => {
+                                    const elementName =
+                                      elementInfo.split(" (")[0];
+                                    const elementRef =
+                                      elementInfo.match(/\(([^)]+)\)/)?.[1] ||
+                                      "N/A";
+
+                                    return (
+                                      <div
+                                        key={elementInfo}
+                                        className="flex items-center justify-between p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                                      >
+                                        <div className="flex items-center space-x-2">
+                                          <div className="w-8 h-8 bg-gray-400 rounded flex items-center justify-center">
+                                            <Settings className="w-4 h-4 text-white" />
+                                          </div>
+                                          <div className="text-left">
+                                            <div className="font-medium text-gray-900 text-sm">
+                                              {elementName}
+                                            </div>
+                                            <div className="text-xs text-gray-500">
+                                              #{elementRef}
+                                            </div>
+                                          </div>
+                                        </div>
+                                        <div className="text-right">
+                                          <div className="font-bold text-lg text-gray-900">
+                                            {count}
+                                          </div>
+                                          <div className="text-xs text-gray-500">
+                                            pièces
+                                          </div>
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
                               </div>
-                              <div className="text-sm text-gray-600">
-                                pièces
-                              </div>
-                            </div>
-                          </div>
-                        </div>
+                            </AccordionContent>
+                          </AccordionItem>
+                        </Accordion>
                       </CardContent>
                     </Card>
                   </div>

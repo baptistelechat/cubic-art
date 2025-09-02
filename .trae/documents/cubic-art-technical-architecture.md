@@ -62,7 +62,7 @@ interface ImageData {
 interface MosaicConfig {
   size: 32; // Fixe - baseplate 32x32 (réf. LEGO 3811)
   colorPalette: LegoColor[]; // 47 couleurs LEGO officielles
-  brickType: '1x1'; // Plates 1x1 uniquement (réf. LEGO 3024)
+  brickType: '1x1'; // Pièces 1x1 uniquement (réf. LEGO 3024)
 }
 
 // Couleurs LEGO disponibles
