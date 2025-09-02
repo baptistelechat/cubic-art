@@ -28,8 +28,10 @@ import {
   Grid3X3,
   Image as ImageIcon,
   Palette,
+  Plug,
   Puzzle,
   Settings,
+  ToyBrick,
   Upload,
 } from "lucide-react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
@@ -769,7 +771,7 @@ export function GeneratorPage() {
                           <AccordionItem value="plates-1x1">
                             <AccordionTrigger className="text-left hover:no-underline">
                               <div className="flex items-center space-x-2">
-                                <div className="w-3 h-3 bg-gradient-to-r from-red-500 via-green-500 to-blue-500 rounded-full"></div>
+                                <ToyBrick className="size-4 text-gray-600" />
                                 <span className="font-medium">Pièces 1x1</span>
                                 <span className="text-sm text-gray-500">
                                   (
@@ -911,7 +913,7 @@ export function GeneratorPage() {
                           <AccordionItem value="technical-elements">
                             <AccordionTrigger className="text-left hover:no-underline">
                               <div className="flex items-center space-x-2">
-                                <Settings className="w-4 h-4 text-gray-600" />
+                                <Settings className="size-4 text-gray-600" />
                                 <span className="font-medium">
                                   Éléments techniques
                                 </span>
@@ -953,7 +955,13 @@ export function GeneratorPage() {
                                       >
                                         <div className="flex items-center space-x-2">
                                           <div className="w-8 h-8 bg-gray-400 rounded flex items-center justify-center">
-                                            <Settings className="w-4 h-4 text-white" />
+                                            {elementName.includes(
+                                              "Connecteur"
+                                            ) ? (
+                                              <Plug className="w-4 h-4 text-white" />
+                                            ) : (
+                                              <Settings className="w-4 h-4 text-white" />
+                                            )}
                                           </div>
                                           <div className="text-left">
                                             <div className="font-medium text-gray-900 text-sm">

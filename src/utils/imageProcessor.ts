@@ -47,22 +47,30 @@ const PLATE_1X1_REF = "3024"; // Pièces 1x1 (conservée)
 // Calcul du nombre de plaques de base Technic nécessaires
 // Les constantes sont maintenant calculées dynamiquement dans processImageToMosaic
 
-// Fonction utilitaire pour calculer le nombre de connecteurs nécessaires
-function calculateConnectorsNeeded(technicBricksPerSide: number): number {
-  return Math.max(0, (technicBricksPerSide - 1) * technicBricksPerSide * 2);
+// // Fonction utilitaire pour calculer le nombre de connecteurs nécessaires
+// Calcule uniquement les arêtes intérieures entre les plaques
+// Pour une grille de N×M plaques : (N-1)*M arêtes horizontales + N*(M-1) arêtes verticales
+// 3 connecteurs par arête intérieure
+function calculateConnectorsNeeded(width: number, height: number): number {
+  const horizontalEdges = (width - 1) * height;
+  const verticalEdges = width * (height - 1);
+  const totalInternalEdges = horizontalEdges + verticalEdges;
+  return totalInternalEdges * 3;
 }
 
 // Fonction utilitaire pour calculer les éléments modulaires
-function calculateModularElements(gridSize: number) {
-  const bricksPerSide = Math.ceil(gridSize / TECHNIC_BASEPLATE_SIZE);
-  const totalBricks = bricksPerSide * bricksPerSide;
-  const connectorsNeeded = Math.max(0, (bricksPerSide - 1) * bricksPerSide * 2);
+function calculateModularElements(gridWidth: number, gridHeight: number) {
+  const bricksWidth = Math.ceil(gridWidth / TECHNIC_BASEPLATE_SIZE);
+  const bricksHeight = Math.ceil(gridHeight / TECHNIC_BASEPLATE_SIZE);
+  const totalBricks = bricksWidth * bricksHeight;
+  const connectorsNeeded = calculateConnectorsNeeded(bricksWidth, bricksHeight);
 
   return {
-    bricksPerSide,
+    bricksWidth,
+    bricksHeight,
     totalBricks,
     connectorsNeeded,
-    configuration: `${bricksPerSide}x${bricksPerSide} briques Technic pour mosaïque ${gridSize}x${gridSize}`,
+    configuration: `${bricksWidth}x${bricksHeight} briques Technic pour mosaïque ${gridWidth}x${gridHeight}`,
   };
 }
 
@@ -78,7 +86,7 @@ export function getModularConfiguration(gridSize: number) {
     );
   }
 
-  const modular = calculateModularElements(gridSize);
+  const modular = calculateModularElements(gridSize, gridSize);
 
   return {
     gridSize,
@@ -87,7 +95,7 @@ export function getModularConfiguration(gridSize: number) {
       ref: TECHNIC_BASEPLATE_REF,
       name: "BRICK 4/3, 16X16 W/ 4.85 HOLE",
       quantity: modular.totalBricks,
-      arrangement: `${modular.bricksPerSide}x${modular.bricksPerSide}`,
+      arrangement: `${modular.bricksWidth}x${modular.bricksHeight}`,
     },
     connectors: {
       ref: CONNECTOR_PEG_REF,
@@ -316,7 +324,7 @@ export async function processImageToMosaic(
         );
         const totalTechnicBricks = technicBricksPerSide * technicBricksPerSide;
         const connectorsNeeded =
-          calculateConnectorsNeeded(technicBricksPerSide);
+          calculateConnectorsNeeded(technicBricksPerSide, technicBricksPerSide);
 
         // 1. Redimensionnement selon la taille configurée
         const resizedImageData = resizeImageToGrid(img, gridSize);
