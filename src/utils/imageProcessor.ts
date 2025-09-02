@@ -74,23 +74,24 @@ function calculateModularElements(gridWidth: number, gridHeight: number) {
   };
 }
 
-// Fonction pour obtenir les informations de configuration selon la taille
-export function getModularConfiguration(gridSize: number) {
-  // Validation des tailles supportées
+// Fonction pour obtenir les informations de configuration selon les dimensions
+export function getModularConfiguration(gridWidth: number, gridHeight: number) {
+  // Validation des dimensions supportées
   const supportedSizes = [16, 32, 48, 64];
-  if (!supportedSizes.includes(gridSize)) {
+  if (!supportedSizes.includes(gridWidth) || !supportedSizes.includes(gridHeight)) {
     throw new Error(
-      `Taille non supportée: ${gridSize}. Tailles supportées: ${supportedSizes.join(
+      `Dimensions non supportées: ${gridWidth}x${gridHeight}. Dimensions supportées: ${supportedSizes.join(
         ", "
       )}`
     );
   }
 
-  const modular = calculateModularElements(gridSize, gridSize);
+  const modular = calculateModularElements(gridWidth, gridHeight);
 
   return {
-    gridSize,
-    totalPieces: gridSize * gridSize,
+    gridWidth,
+    gridHeight,
+    totalPieces: gridWidth * gridHeight,
     technicBricks: {
       ref: TECHNIC_BASEPLATE_REF,
       name: "BRICK 4/3, 16X16 W/ 4.85 HOLE",
@@ -105,7 +106,7 @@ export function getModularConfiguration(gridSize: number) {
     plates1x1: {
       ref: PLATE_1X1_REF,
       name: "Pièce 1x1",
-      quantity: gridSize * gridSize,
+      quantity: gridWidth * gridHeight,
     },
     description: modular.configuration,
   };
@@ -147,43 +148,57 @@ function findClosestLegoColor(rgb: [number, number, number]): LegoColor {
   return closestColor;
 }
 
-// Redimensionne l'image selon la taille de grille configurée avec recadrage carré centré
+// Redimensionne l'image selon les dimensions de grille configurées avec recadrage adaptatif
 function resizeImageToGrid(
   imageElement: HTMLImageElement,
-  gridSize: number
+  gridWidth: number,
+  gridHeight: number
 ): ImageData {
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d")!;
 
-  canvas.width = gridSize;
-  canvas.height = gridSize;
+  canvas.width = gridWidth;
+  canvas.height = gridHeight;
 
   // Redimensionnement avec interpolation optimisée
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
 
-  // Calcul des dimensions pour le recadrage carré centré
+  // Calcul des dimensions pour le recadrage adaptatif selon le ratio de la grille
   const { width: imgWidth, height: imgHeight } = imageElement;
-  const minDimension = Math.min(imgWidth, imgHeight);
+  const gridRatio = gridWidth / gridHeight;
+  const imgRatio = imgWidth / imgHeight;
 
-  // Calcul des coordonnées de recadrage pour centrer le carré
-  const cropX = (imgWidth - minDimension) / 2;
-  const cropY = (imgHeight - minDimension) / 2;
+  let cropWidth, cropHeight, cropX, cropY;
+
+  if (imgRatio > gridRatio) {
+    // Image plus large que le ratio de grille - recadrer la largeur
+    cropHeight = imgHeight;
+    cropWidth = imgHeight * gridRatio;
+    cropX = (imgWidth - cropWidth) / 2;
+    cropY = 0;
+  } else {
+    // Image plus haute que le ratio de grille - recadrer la hauteur
+    cropWidth = imgWidth;
+    cropHeight = imgWidth / gridRatio;
+    cropX = 0;
+    cropY = (imgHeight - cropHeight) / 2;
+  }
 
   // Dessiner l'image recadrée et redimensionnée
   ctx.drawImage(
     imageElement,
     cropX,
     cropY,
-    minDimension,
-    minDimension, // Source (carré centré)
+    cropWidth,
+    cropHeight, // Source (recadré selon le ratio)
     0,
     0,
-    gridSize,
-    gridSize // Destination selon la taille configurée
+    gridWidth,
+    gridHeight // Destination selon les dimensions configurées
   );
 
-  return ctx.getImageData(0, 0, gridSize, gridSize);
+  return ctx.getImageData(0, 0, gridWidth, gridHeight);
 }
 
 // Extrait les couleurs RGB de l'ImageData avec gestion de la transparence
@@ -316,18 +331,17 @@ export async function processImageToMosaic(
 
     img.onload = () => {
       try {
-        // Calcul des constantes selon la taille configurée
-        const gridSize = config.size;
-        const totalPieces = gridSize * gridSize;
-        const technicBricksPerSide = Math.ceil(
-          gridSize / TECHNIC_BASEPLATE_SIZE
-        );
-        const totalTechnicBricks = technicBricksPerSide * technicBricksPerSide;
-        const connectorsNeeded =
-          calculateConnectorsNeeded(technicBricksPerSide, technicBricksPerSide);
+        // Calcul des constantes selon les dimensions configurées
+        const gridWidth = config.width;
+        const gridHeight = config.height;
+        const totalPieces = gridWidth * gridHeight;
+        const technicBricksWidth = Math.ceil(gridWidth / TECHNIC_BASEPLATE_SIZE);
+        const technicBricksHeight = Math.ceil(gridHeight / TECHNIC_BASEPLATE_SIZE);
+        const totalTechnicBricks = technicBricksWidth * technicBricksHeight;
+        const connectorsNeeded = calculateConnectorsNeeded(technicBricksWidth, technicBricksHeight);
 
-        // 1. Redimensionnement selon la taille configurée
-        const resizedImageData = resizeImageToGrid(img, gridSize);
+        // 1. Redimensionnement selon les dimensions configurées
+        const resizedImageData = resizeImageToGrid(img, gridWidth, gridHeight);
 
         // 2. Extraction de la grille RGB avec gestion de la transparence
         const rgbGrid = extractRGBGrid(
@@ -371,7 +385,7 @@ export async function processImageToMosaic(
           pieces,
           plaqueDeBase: {
             ref: `${totalTechnicBricks}x Plaque de base Technic ${TECHNIC_BASEPLATE_REF}`,
-            size: `${gridSize}x${gridSize} (${technicBricksPerSide}x${technicBricksPerSide} briques)`,
+            size: `${gridWidth}x${gridHeight} (${technicBricksWidth}x${technicBricksHeight} briques)`,
           },
           totalPieces: totalPieces,
           piecesList: { ...piecesList, ...modulePiecesList },
@@ -404,12 +418,13 @@ export function generateMosaicPreview(
 
   // Amélioration pour éviter le flou et la pixelisation
   const devicePixelRatio = window.devicePixelRatio || 1;
-  const gridSize = result.config.size;
+  const gridWidth = result.config.width;
+  const gridHeight = result.config.height;
 
   // Calcul optimisé des dimensions pour un rendu ultra-net
   const baseScale = Math.max(scale, 16); // Scale minimum augmenté pour éviter la pixelisation
-  const displayWidth = gridSize * baseScale;
-  const displayHeight = gridSize * baseScale;
+  const displayWidth = gridWidth * baseScale;
+  const displayHeight = gridHeight * baseScale;
 
   // Configuration du canvas avec ratio optimal pour haute qualité
   const canvasScale = Math.max(devicePixelRatio, 3); // Minimum 3x pour une netteté maximale
@@ -447,8 +462,9 @@ export function generateMosaicPreview(
 
         // Ajouter une bordure visible pour les cases vides
         ctx.strokeStyle = "rgba(220, 220, 220, 0.7)"; // Gris très clair pour meilleure visibilité
-        // Calcul adaptatif pour les hautes résolutions (64x64)
-        const minLineWidth = gridSize >= 64 ? 2 : 1;
+        // Calcul adaptatif pour les hautes résolutions
+        const maxDimension = Math.max(gridWidth, gridHeight);
+        const minLineWidth = maxDimension >= 64 ? 2 : 1;
         ctx.lineWidth = Math.max(minLineWidth, adjustedScale * 0.08); // Épaisseur augmentée
         ctx.strokeRect(brickX, brickY, brickSize, brickSize);
       } else if (color && color.id !== -1) {

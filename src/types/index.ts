@@ -19,7 +19,8 @@ export interface LegoColor {
 
 // Configuration de la mosaïque
 export interface MosaicConfig {
-  size: 16 | 32 | 48 | 64; // Tailles modulaires supportées
+  width: 16 | 32 | 48 | 64; // Largeur modulaire supportée
+  height: 16 | 32 | 48 | 64; // Hauteur modulaire supportée
   colorPalette: LegoColor[]; // Couleurs LEGO officielles
   brickType: "1x1"; // Type de brique LEGO pour les pixels
 }

@@ -89,7 +89,8 @@ export const LEGO_COLORS: LegoColor[] = [
 
 // Configuration par défaut de la mosaïque
 export const DEFAULT_MOSAIC_CONFIG = {
-  size: 48 as const,
+  width: 48 as const,
+  height: 48 as const,
   colorPalette: LEGO_COLORS,
   brickType: '1x1' as const
 };

@@ -69,7 +69,7 @@ export function AboutPage() {
                 Y a-t-il une limite de taille pour les images ?
               </AccordionTrigger>
               <AccordionContent>
-                Pour garantir des performances optimales, nous limitons la taille des images à 10 MB et 4000x4000 pixels. Si votre image est plus grande, elle sera automatiquement redimensionnée tout en préservant les proportions.
+                Pour garantir des performances optimales, nous limitons la taille des images importées à 10 MB.
               </AccordionContent>
             </AccordionItem>
             

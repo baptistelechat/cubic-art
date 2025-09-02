@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -25,7 +26,6 @@ import {
 import {
   Clock,
   Download,
-  Grid3X3,
   Image as ImageIcon,
   Palette,
   Plug,
@@ -39,8 +39,8 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 // Fonction pour générer le SVG
 function generateSVG(result: MosaicResult): string {
   const size = 10; // Taille de chaque carré
-  const width = 32 * size;
-  const height = 32 * size;
+  const width = result.config.width * size;
+  const height = result.config.height * size;
 
   let svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">`;
 
@@ -150,7 +150,7 @@ export function GeneratorPage() {
 
   // Constantes pour les limites
   const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 Mo en bytes
-  const MAX_IMAGE_DIMENSION = 4000; // 4000x4000 pixels
+  // const MAX_IMAGE_DIMENSION = 4000; // 4000x4000 pixels - Limite supprimée
 
   // Fonction de validation des fichiers
   const validateFile = async (
@@ -173,32 +173,8 @@ export function GeneratorPage() {
       };
     }
 
-    // Validation des dimensions de l'image
-    return new Promise((resolve) => {
-      const img = new Image();
-      img.onload = () => {
-        if (
-          img.width > MAX_IMAGE_DIMENSION ||
-          img.height > MAX_IMAGE_DIMENSION
-        ) {
-          resolve({
-            isValid: false,
-            error: `Les dimensions de l'image sont trop importantes (${img.width}x${img.height}). Les dimensions maximales autorisées sont de ${MAX_IMAGE_DIMENSION}x${MAX_IMAGE_DIMENSION} pixels.`,
-          });
-        } else {
-          resolve({ isValid: true });
-        }
-        URL.revokeObjectURL(img.src);
-      };
-      img.onerror = () => {
-        resolve({
-          isValid: false,
-          error: "Impossible de lire les dimensions de l'image.",
-        });
-        URL.revokeObjectURL(img.src);
-      };
-      img.src = URL.createObjectURL(file);
-    });
+    // Validation des dimensions de l'image supprimée - Aucune limite de taille
+    return { isValid: true };
   };
 
   const handleFileSelect = async (file: File) => {
@@ -427,74 +403,174 @@ export function GeneratorPage() {
               <Card>
                 <CardHeader>
                   <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
-                    <Grid3X3 size={24} className="text-green-600" />
+                    <Puzzle size={24} className="text-green-600" />
                     <span>Configuration</span>
                   </h3>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    <div className="text-left">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Taille de la grille
+                    <div className="space-y-4 text-left">
+                      <label className="block text-sm font-medium text-gray-700">
+                        Dimensions de la mosaïque
                       </label>
-                      <Select
-                        value={config.size.toString()}
-                        onValueChange={(value) =>
-                          updateConfig({
-                            size: parseInt(value) as 16 | 32 | 48 | 64,
-                          })
-                        }
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Sélectionnez une taille" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="16">
-                            <div className="flex items-center space-x-1">
-                              <Puzzle className="size-4 text-gray-900" />
-                              <span className="text-sm text-gray-900 font-medium">
-                                16x16
-                              </span>
-                              <span className="text-xs text-gray-600">
-                                (256 pièces)
-                              </span>
+
+                      <div className="flex items-end space-x-3 p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-end space-x-3">
+                          {/* Input Largeur */}
+                          <div className="flex flex-col space-y-2">
+                            <Label htmlFor="width">Largeur</Label>
+                            <Select
+                              value={config.width.toString()}
+                              onValueChange={(value) =>
+                                updateConfig({
+                                  width: parseInt(value) as 16 | 32 | 48 | 64,
+                                })
+                              }
+                            >
+                              <SelectTrigger className="w-20 h-10">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem
+                                  value="16"
+                                  className="flex items-center space-x-1"
+                                >
+                                  <div className="flex items-center space-x-1">
+                                    <ToyBrick className="size-4" />
+                                    <span>16</span>
+                                  </div>
+                                </SelectItem>
+                                <SelectItem
+                                  value="32"
+                                  className="flex items-center space-x-1"
+                                >
+                                  <div className="flex items-center space-x-1">
+                                    <ToyBrick className="size-4" />
+                                    <span>32</span>
+                                  </div>
+                                </SelectItem>
+                                <SelectItem
+                                  value="48"
+                                  className="flex items-center space-x-1"
+                                >
+                                  <div className="flex items-center space-x-1">
+                                    <ToyBrick className="size-4" />
+                                    <span>48</span>
+                                  </div>
+                                </SelectItem>
+                                <SelectItem
+                                  value="64"
+                                  className="flex items-center space-x-1"
+                                >
+                                  <div className="flex items-center space-x-1">
+                                    <ToyBrick className="size-4" />
+                                    <span>64</span>
+                                  </div>
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          {/* Symbole X */}
+                          <div className="flex items-center h-10 mt-6">
+                            <span className="font-medium text-gray-900 text-lg">
+                              ×
+                            </span>
+                          </div>
+
+                          {/* Input Hauteur */}
+                          <div className="flex flex-col space-y-2">
+                            <Label htmlFor="height">Hauteur</Label>
+                            <Select
+                              value={config.height.toString()}
+                              onValueChange={(value) =>
+                                updateConfig({
+                                  height: parseInt(value) as 16 | 32 | 48 | 64,
+                                })
+                              }
+                            >
+                              <SelectTrigger className="w-20 h-10">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem
+                                  value="16"
+                                  className="flex items-center space-x-1"
+                                >
+                                  <div className="flex items-center space-x-1">
+                                    <ToyBrick className="size-4" />
+                                    <span>16</span>
+                                  </div>
+                                </SelectItem>
+                                <SelectItem
+                                  value="32"
+                                  className="flex items-center space-x-1"
+                                >
+                                  <div className="flex items-center space-x-1">
+                                    <ToyBrick className="size-4" />
+                                    <span>32</span>
+                                  </div>
+                                </SelectItem>
+                                <SelectItem
+                                  value="48"
+                                  className="flex items-center space-x-1"
+                                >
+                                  <div className="flex items-center space-x-1">
+                                    <ToyBrick className="size-4" />
+                                    <span>48</span>
+                                  </div>
+                                </SelectItem>
+                                <SelectItem
+                                  value="64"
+                                  className="flex items-center space-x-1"
+                                >
+                                  <div className="flex items-center space-x-1">
+                                    <ToyBrick className="size-4" />
+                                    <span>64</span>
+                                  </div>
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          {/* Symbole = */}
+                          <div className="flex items-center h-10 mt-6">
+                            <span className="font-medium text-gray-900 text-lg">
+                              =
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Comptage de pièces avec le même style que la décomposition */}
+                        <div className="flex justify-between w-full">
+                          <div className="flex space-x-2">
+                            <LegoBrick
+                              color={{
+                                id: 302401,
+                                name: "White",
+                                hex: "#f4f4f4",
+                                rgb: [244, 244, 244],
+                              }}
+                              size="md"
+                              showTooltip={false}
+                            />
+                            <div className="text-left">
+                              <div className="font-medium text-gray-900 text-sm">
+                                Total Pièces 1x1
+                              </div>
+                              <div className="text-xs text-gray-500">#3024</div>
                             </div>
-                          </SelectItem>
-                          <SelectItem value="32">
-                            <div className="flex items-center space-x-1">
-                              <Puzzle className="size-4 text-gray-900" />
-                              <span className="text-sm text-gray-900 font-medium">
-                                32x32
-                              </span>
-                              <span className="text-xs text-gray-600">
-                                (1024 pièces)
-                              </span>
+                          </div>
+                          <div className="text-right">
+                            <div className="font-bold text-xl text-gray-900">
+                              {config.width * config.height}
                             </div>
-                          </SelectItem>
-                          <SelectItem value="48">
-                            <div className="flex items-center space-x-1">
-                              <Puzzle className="size-4 text-gray-900" />
-                              <span className="text-sm text-gray-900 font-medium">
-                                48x48
-                              </span>
-                              <span className="text-xs text-gray-600">
-                                (2304 pièces)
-                              </span>
+                            <div className="text-xs text-gray-500">
+                              pièce{config.width * config.height > 1 ? "s" : ""}
                             </div>
-                          </SelectItem>
-                          <SelectItem value="64">
-                            <div className="flex items-center space-x-1">
-                              <Puzzle className="size-4 text-gray-900" />
-                              <span className="text-sm text-gray-900 font-medium">
-                                64x64
-                              </span>
-                              <span className="text-xs text-gray-600">
-                                (4096 pièces)
-                              </span>
-                            </div>
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
+                          </div>
+                        </div>
+                      </div>
                     </div>
 
                     <div className="text-left">
@@ -532,9 +608,7 @@ export function GeneratorPage() {
                                   showTooltip={false}
                                 />
                               )}
-                              <span className="text-sm text-gray-900 font-medium">
-                                {backgroundColorForTransparency.name}
-                              </span>
+                              <span>{backgroundColorForTransparency.name}</span>
                               <span className="text-xs text-gray-600">
                                 {backgroundColorForTransparency.id !== -1 &&
                                   `#${backgroundColorForTransparency.id}`}
@@ -567,9 +641,7 @@ export function GeneratorPage() {
                                   size="sm"
                                   showTooltip={false}
                                 />
-                                <span className="text-sm text-gray-900 font-medium">
-                                  {color.name}
-                                </span>
+                                <span>{color.name}</span>
                                 <span className="text-xs text-gray-600">
                                   #{color.id}
                                 </span>
@@ -695,6 +767,7 @@ export function GeneratorPage() {
                     <MosaicComparison
                       originalImage={previewUrl}
                       mosaicCanvas={mosaicCanvas}
+                      mosaicConfig={mosaicResult.config}
                       pieceCount={mosaicResult.totalPieces}
                       colorCount={
                         mosaicResult.piecesList
@@ -900,9 +973,7 @@ export function GeneratorPage() {
                                           0
                                         )}
                                     </div>
-                                    <div className="text-sm text-gray-600">
-                                      pièces
-                                    </div>
+                                    <div>pièces</div>
                                   </div>
                                 </div>
                               </div>

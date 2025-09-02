@@ -7,6 +7,7 @@ import {
   ComparisonHandle,
   ComparisonItem,
 } from "@/components/ui/kibo-ui/comparison";
+import type { MosaicConfig } from "@/types";
 import { Grid3X3, Trash2 } from "lucide-react";
 import { useEffect, useRef } from "react";
 
@@ -17,6 +18,9 @@ interface MosaicComparisonProps {
   // Mosaic data - either canvas or image URL
   mosaicCanvas?: HTMLCanvasElement;
   mosaicImageUrl?: string;
+
+  // Mosaic configuration for aspect ratio calculation
+  mosaicConfig?: MosaicConfig;
 
   // Statistics
   pieceCount?: number;
@@ -35,12 +39,13 @@ export function MosaicComparison({
   originalImage,
   mosaicCanvas,
   mosaicImageUrl,
+  mosaicConfig,
   pieceCount,
   colorCount,
   onDelete,
   showDeleteButton = false,
   className = "",
-  aspectRatio = "aspect-square",
+  aspectRatio,
 }: MosaicComparisonProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -52,47 +57,66 @@ export function MosaicComparison({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // Get device pixel ratio for sharp rendering
-    const devicePixelRatio = window.devicePixelRatio || 1;
+    // Wait for DOM to update with new dimensions
+    requestAnimationFrame(() => {
+      // Get device pixel ratio for sharp rendering
+      const devicePixelRatio = window.devicePixelRatio || 1;
 
-    // Calculate display size
-    const displayWidth = canvas.offsetWidth;
-    const displayHeight = canvas.offsetHeight;
+      // Get the container dimensions
+      const containerWidth = canvas.offsetWidth;
+      const containerHeight = canvas.offsetHeight;
 
-    // Calculate actual canvas size
-    const canvasWidth = displayWidth * devicePixelRatio;
-    const canvasHeight = displayHeight * devicePixelRatio;
+      // Skip if container doesn't have dimensions yet
+      if (containerWidth === 0 || containerHeight === 0) return;
 
-    // Set actual canvas size
-    canvas.width = canvasWidth;
-    canvas.height = canvasHeight;
+      // Use full container dimensions - let CSS handle aspect ratio
+      const displayWidth = containerWidth;
+      const displayHeight = containerHeight;
 
-    // Set CSS size
-    canvas.style.width = `${displayWidth}px`;
-    canvas.style.height = `${displayHeight}px`;
+      // Calculate actual canvas size
+      const canvasWidth = displayWidth * devicePixelRatio;
+      const canvasHeight = displayHeight * devicePixelRatio;
 
-    // Scale context for high DPI
-    ctx.scale(devicePixelRatio, devicePixelRatio);
+      // Set actual canvas size
+      canvas.width = canvasWidth;
+      canvas.height = canvasHeight;
 
-    // Disable image smoothing for crisp pixel art
-    ctx.imageSmoothingEnabled = false;
+      // Remove explicit CSS sizing - let CSS classes handle it
+      canvas.style.width = '';
+      canvas.style.height = '';
 
-    // Draw the mosaic canvas
-    ctx.drawImage(mosaicCanvas, 0, 0, displayWidth, displayHeight);
-  }, [mosaicCanvas]);
+      // Scale context for high DPI
+      ctx.scale(devicePixelRatio, devicePixelRatio);
+
+      // Disable image smoothing for crisp pixel art
+      ctx.imageSmoothingEnabled = false;
+
+      // Draw the mosaic canvas to fill the entire display area
+      ctx.drawImage(mosaicCanvas, 0, 0, displayWidth, displayHeight);
+    });
+  }, [mosaicCanvas, mosaicConfig]);
+
+  // Calculate dynamic aspect ratio based on mosaic config
+  const dynamicAspectRatio = mosaicConfig 
+    ? { aspectRatio: `${mosaicConfig.width}/${mosaicConfig.height}` }
+    : {};
+  const fallbackClass = mosaicConfig ? "" : (aspectRatio || "aspect-square");
 
   return (
     <Card className={`overflow-hidden ${className}`}>
       <CardContent className="p-0">
         {/* Comparison Section */}
-        <div className={`relative ${aspectRatio} w-full`}>
+        <div 
+          className={`relative w-full ${fallbackClass}`}
+          style={dynamicAspectRatio}
+        >
           <Comparison className="h-full">
             {/* Mosaic */}
             <ComparisonItem position="left">
               {mosaicCanvas ? (
                 <canvas
                   ref={canvasRef}
-                  className="h-full w-full object-cover"
+                  className="h-full w-full object-contain"
                   style={{ imageRendering: "pixelated" }}
                 />
               ) : mosaicImageUrl ? (
