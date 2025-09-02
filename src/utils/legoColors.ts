@@ -92,5 +92,6 @@ export const DEFAULT_MOSAIC_CONFIG = {
   width: 48 as const,
   height: 48 as const,
   colorPalette: LEGO_COLORS,
-  brickType: '1x1' as const
+  brickType: '1x1' as const,
+  showModuleGrid: false
 };

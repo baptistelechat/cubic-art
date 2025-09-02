@@ -23,6 +23,7 @@ export interface MosaicConfig {
   height: 16 | 32 | 48 | 64; // Hauteur modulaire supportée
   colorPalette: LegoColor[]; // Couleurs LEGO officielles
   brickType: "1x1"; // Type de brique LEGO pour les pixels
+  showModuleGrid?: boolean; // Afficher la grille de découpage des modules 16x16
 }
 
 // Résultat de la transformation

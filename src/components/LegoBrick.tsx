@@ -70,7 +70,7 @@ export const LegoBrick = ({
           <TooltipContent>
             <div className="text-center">
               <div className="font-medium">{color.name}</div>
-              <div className="text-xs opacity-70">ID: {color.id}</div>
+              <div className="text-xs opacity-70">#{color.id}</div>
             </div>
           </TooltipContent>
         </Tooltip>

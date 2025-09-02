@@ -16,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useStore } from "@/hooks/useStore";
 import type { LegoColor, MosaicResult } from "@/types";
@@ -650,6 +651,31 @@ export function GeneratorPage() {
                           ))}
                         </SelectContent>
                       </Select>
+                    </div>
+
+                    {/* Toggle pour la grille modulaire */}
+                    <div className="text-left">
+                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div className="flex flex-col">
+                          <label
+                            htmlFor="showModuleGrid"
+                            className="text-sm font-medium text-gray-700 cursor-pointer"
+                          >
+                            Afficher la grille des modules 16×16
+                          </label>
+                          <p className="text-xs text-gray-500 mt-1">
+                            Visualise les plaques de base Technic 16×16 sur la
+                            mosaïque
+                          </p>
+                        </div>
+                        <Switch
+                          id="showModuleGrid"
+                          checked={config.showModuleGrid || false}
+                          onCheckedChange={(checked) =>
+                            updateConfig({ showModuleGrid: checked })
+                          }
+                        />
+                      </div>
                     </div>
                   </div>
                 </CardContent>
