@@ -1,5 +1,7 @@
 import { LegoBrick } from "@/components/LegoBrick";
 import { MosaicComparison } from "@/components/MosaicComparison";
+import TechnicConnector from "@/components/TechnicConnector";
+import { TechnicPlate16x16 } from "@/components/TechnicPlate16x16";
 import {
   Accordion,
   AccordionContent,
@@ -29,7 +31,6 @@ import {
   Download,
   Image as ImageIcon,
   Palette,
-  Plug,
   Puzzle,
   Settings,
   ToyBrick,
@@ -699,7 +700,16 @@ export function GeneratorPage() {
                     <span>Palette LEGO officielle complète</span>
                   </h3>
                 </CardHeader>
-                <CardContent className="flex-1 overflow-y-auto">
+                <CardContent className="flex-1 overflow-y-auto space-y-6">
+                  {/* Titre Pièce 1x1 #3024 */}
+                  <div className="flex items-end gap-2 text-left">
+                    <p className="text-sm font-medium text-gray-900">
+                      Pièce 1x1
+                    </p>
+                    <p className="text-xs text-gray-500">#3024</p>
+                  </div>
+
+                  {/* Grille de couleurs LEGO */}
                   <TooltipProvider>
                     <div className="grid grid-cols-8 gap-3">
                       {config.colorPalette.map((color) => (
@@ -710,6 +720,68 @@ export function GeneratorPage() {
                           showTooltip={true}
                         />
                       ))}
+                    </div>
+                  </TooltipProvider>
+
+                  {/* Titre Plaque de base 16x16 Technic */}
+                  <div className="flex items-end gap-2 text-left pt-4 border-t border-gray-200">
+                    <p className="text-sm font-medium text-gray-900">
+                      Plaque de base 16x16 Technic
+                    </p>
+                    <p className="text-xs text-gray-500">#65803</p>
+                  </div>
+
+                  {/* Grille de couleurs pour plaques Technic */}
+                  <TooltipProvider>
+                    <div className="grid grid-cols-8 gap-3">
+                      {/* Black */}
+                      <TechnicPlate16x16
+                        color={{
+                          id: 6302092,
+                          name: "Black",
+                          hex: "#1b2a34",
+                          rgb: [27, 42, 52],
+                        }}
+                        size="md"
+                        showTooltip={true}
+                      />
+
+                      {/* Light Nougat */}
+                      <TechnicPlate16x16
+                        color={{
+                          id: 6421617,
+                          name: "Light Nougat",
+                          hex: "#e1bea1",
+                          rgb: [225, 190, 161],
+                        }}
+                        size="md"
+                        showTooltip={true}
+                      />
+                    </div>
+                  </TooltipProvider>
+
+                  {/* Titre Connecteur Technic */}
+                  <div className="flex items-end gap-2 text-left pt-4 border-t border-gray-200">
+                    <p className="text-sm font-medium text-gray-900">
+                      Connecteur Technic
+                    </p>
+                    <p className="text-xs text-gray-500">#61332</p>
+                  </div>
+
+                  {/* Grille de couleurs pour connecteurs Technic */}
+                  <TooltipProvider>
+                    <div className="grid grid-cols-8 gap-3">
+                      {/* Black */}
+                      <TechnicConnector
+                        color={{
+                          id: 6279875,
+                          name: "Black",
+                          hex: "#1b2a34",
+                          rgb: [27, 42, 52],
+                        }}
+                        size="md"
+                        showTooltip={true}
+                      />
                     </div>
                   </TooltipProvider>
                 </CardContent>
@@ -1020,7 +1092,7 @@ export function GeneratorPage() {
                               <div className="flex items-center space-x-2">
                                 <Settings className="size-4 text-gray-600" />
                                 <span className="font-medium">
-                                  Éléments techniques
+                                  Éléments Technic
                                 </span>
                                 <span className="text-sm text-gray-500">
                                   (
@@ -1059,15 +1131,34 @@ export function GeneratorPage() {
                                         className="flex items-center justify-between p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                                       >
                                         <div className="flex items-center space-x-2">
-                                          <div className="w-8 h-8 bg-gray-400 rounded flex items-center justify-center">
-                                            {elementName.includes(
-                                              "Connecteur"
-                                            ) ? (
-                                              <Plug className="w-4 h-4 text-white" />
-                                            ) : (
-                                              <Settings className="w-4 h-4 text-white" />
-                                            )}
-                                          </div>
+                                          {/* Représentation visuelle spécifique */}
+                                          {elementName.includes(
+                                            "Connecteur"
+                                          ) ? (
+                                            /* Connecteur Technic - Composant réutilisable */
+                                            <TechnicConnector
+                                              color={{
+                                                id: 6279875,
+                                                name: "Black",
+                                                hex: "#1b2a34",
+                                                rgb: [27, 42, 52],
+                                              }}
+                                              size="md"
+                                              showTooltip={false}
+                                            />
+                                          ) : (
+                                            /* Plaque de base Technic - Composant réutilisable */
+                                            <TechnicPlate16x16
+                                              color={{
+                                                id: 6302092,
+                                                name: "Black",
+                                                hex: "#1b2a34",
+                                                rgb: [27, 42, 52],
+                                              }}
+                                              size="md"
+                                              showTooltip={false}
+                                            />
+                                          )}
                                           <div className="text-left">
                                             <div className="font-medium text-gray-900 text-sm">
                                               {elementName}
