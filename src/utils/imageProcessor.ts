@@ -6,6 +6,15 @@ import type {
 } from "@/types";
 import { LEGO_COLORS } from "./legoColors";
 
+// Fonction de génération d'UUID compatible avec HTTP (alternative à crypto.randomUUID)
+function generateUUID(): string {
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
 // Fonction utilitaire pour ajuster la luminosité d'une couleur hexadécimale
 function adjustBrightness(hex: string, percent: number): string {
   // Supprimer le # si présent
@@ -207,7 +216,11 @@ function extractRGBGrid(
           row.push(null);
         } else {
           // Remplacer par la couleur de fond
-          row.push([defaultBackground[0], defaultBackground[1], defaultBackground[2]]);
+          row.push([
+            defaultBackground[0],
+            defaultBackground[1],
+            defaultBackground[2],
+          ]);
         }
       } else if (alpha < 255) {
         // Pixel semi-transparent - toujours mélanger avec la couleur de fond
@@ -329,7 +342,7 @@ export async function processImageToMosaic(
 
         // 5. Création de l'objet MosaicImageData
         const imageData: MosaicImageData = {
-          id: crypto.randomUUID(),
+          id: generateUUID(),
           name: imageFile.name,
           originalUrl: url,
           width: img.naturalWidth,
@@ -427,7 +440,7 @@ export function generateMosaicPreview(
         // Dessiner les emplacements "Vide" avec transparence alpha à 0
         ctx.fillStyle = "rgba(0, 0, 0, 0)";
         ctx.fillRect(brickX, brickY, brickSize, brickSize);
-        
+
         // Ajouter une bordure visible pour les cases vides
         ctx.strokeStyle = "rgba(220, 220, 220, 0.7)"; // Gris très clair pour meilleure visibilité
         // Calcul adaptatif pour les hautes résolutions (64x64)
