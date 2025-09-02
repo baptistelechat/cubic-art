@@ -32,9 +32,16 @@ export const useStore = create<Store>((set) => ({
   
   setIsProcessing: (processing) => set({ isProcessing: processing }),
   
-  updateConfig: (configUpdate) => set((state) => ({
-    config: { ...state.config, ...configUpdate }
-  })),
+  updateConfig: (configUpdate) => set((state) => {
+    const newConfig = { ...state.config, ...configUpdate };
+    
+    // Forcer showModuleGrid à false si les dimensions sont 16x16
+    if (newConfig.width === 16 && newConfig.height === 16) {
+      newConfig.showModuleGrid = false;
+    }
+    
+    return { config: newConfig };
+  }),
   
   addToGallery: (image) => set((state) => {
     const exists = state.gallery.find(img => img.id === image.id);

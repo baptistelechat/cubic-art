@@ -129,29 +129,40 @@ export function MosaicComparison({
         // Draw module numbers
         let moduleNumber = 1;
         const fontSize =
-          Math.min(moduleDisplayWidth, moduleDisplayHeight) * 0.15;
-        ctx.font = `bold ${fontSize}px Arial`;
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
+          Math.min(moduleDisplayWidth, moduleDisplayHeight) * 0.15; // Réduction de 0.2 à 0.15
 
         for (let row = 0; row < gridRows; row++) {
           for (let col = 0; col < gridCols; col++) {
-            const centerX = col * moduleDisplayWidth + moduleDisplayWidth / 2;
-            const centerY = row * moduleDisplayHeight + moduleDisplayHeight / 2;
+            // Calcul plus précis du centre avec arrondi pour éviter les décalages
+            const centerX = Math.round(
+              col * moduleDisplayWidth + moduleDisplayWidth / 2
+            );
+            const centerY = Math.round(
+              row * moduleDisplayHeight + moduleDisplayHeight / 2
+            );
 
-            // Dessiner le fond blanc semi-transparent (bulle)
-            const bubbleRadius = fontSize * 0.8;
-            ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+            // Draw semi-transparent white background circle (taille réduite)
+            const bubbleRadius = fontSize * 1.0; // Réduction de 1.2 à 1.0
+            ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
             ctx.beginPath();
             ctx.arc(centerX, centerY, bubbleRadius, 0, 2 * Math.PI);
             ctx.fill();
 
-            // Dessiner le texte noir avec contour noir pour la lisibilité
-            ctx.fillStyle = "black";
-            ctx.strokeStyle = "black";
+            // Add subtle border
+            ctx.strokeStyle = "rgba(0, 0, 0, 0.2)";
             ctx.lineWidth = 1;
-            ctx.strokeText(moduleNumber.toString(), centerX, centerY);
-            ctx.fillText(moduleNumber.toString(), centerX, centerY);
+            ctx.stroke();
+
+            // Draw module number avec un meilleur centrage
+            ctx.fillStyle = "#333";
+            ctx.font = `bold ${Math.round(fontSize)}px Arial`; // Arrondi de la taille de police
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+
+            // Ajustement fin du centrage vertical
+            const textY = centerY + 1; // Léger ajustement pour compenser l'alignement baseline
+
+            ctx.fillText(moduleNumber.toString(), centerX, textY);
 
             moduleNumber++;
           }

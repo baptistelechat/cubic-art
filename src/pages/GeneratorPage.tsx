@@ -656,24 +656,32 @@ export function GeneratorPage() {
                     {/* Toggle pour la grille modulaire */}
                     <div className="text-left">
                       <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div className="flex flex-col">
-                          <label
-                            htmlFor="showModuleGrid"
-                            className="text-sm font-medium text-gray-700 cursor-pointer"
+                        <label
+                          htmlFor="showModuleGrid"
+                          className="flex-1 cursor-pointer"
+                        >
+                          <div
+                            className={`text-sm font-medium ${
+                              config.width === 16 && config.height === 16
+                                ? "text-gray-400"
+                                : "text-gray-700"
+                            }`}
                           >
                             Afficher la grille des modules 16×16
-                          </label>
+                          </div>
                           <p className="text-xs text-gray-500 mt-1">
-                            Visualise les plaques de base Technic 16×16 sur la
-                            mosaïque
+                            {config.width === 16 && config.height === 16
+                              ? "Désactivé pour les mosaïques 16×16 (grille non nécessaire)"
+                              : "Visualise les plaques de base Technic 16×16 sur la mosaïque"}
                           </p>
-                        </div>
+                        </label>
                         <Switch
                           id="showModuleGrid"
                           checked={config.showModuleGrid || false}
-                          onCheckedChange={(checked) =>
-                            updateConfig({ showModuleGrid: checked })
-                          }
+                          disabled={config.width === 16 && config.height === 16}
+                          onCheckedChange={(checked) => {
+                            updateConfig({ showModuleGrid: checked });
+                          }}
                         />
                       </div>
                     </div>
