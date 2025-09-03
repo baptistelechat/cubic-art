@@ -257,9 +257,7 @@ export const DownloadCard: React.FC<DownloadCardProps> = ({
               >
                 <ToyBrick size={20} />
                 {isGeneratingBom ? "Génération..." : "Pick a Brick"}
-                <span className="absolute bottom-1 right-2 text-xs">
-                  CSV
-                </span>
+                <span className="absolute bottom-1 right-2 text-xs">CSV</span>
               </button>
               <button
                 onClick={downloadPABJSON}
@@ -269,9 +267,7 @@ export const DownloadCard: React.FC<DownloadCardProps> = ({
               >
                 <ToyBrick size={20} />
                 {isGeneratingBom ? "Génération..." : "Pick a Brick"}
-                <span className="absolute bottom-1 right-2 text-xs">
-                  JSON
-                </span>
+                <span className="absolute bottom-1 right-2 text-xs">JSON</span>
               </button>
               <button
                 onClick={downloadBricklinkXML}
@@ -281,9 +277,7 @@ export const DownloadCard: React.FC<DownloadCardProps> = ({
               >
                 <Package size={20} />
                 <span>{isGeneratingBom ? "Génération..." : "BrickLink"}</span>
-                <span className="absolute bottom-1 right-2 text-xs">
-                  XML
-                </span>
+                <span className="absolute bottom-1 right-2 text-xs">XML</span>
               </button>
             </div>
           </div>

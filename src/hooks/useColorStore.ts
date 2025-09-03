@@ -35,13 +35,13 @@ export const useColorStore = create<ColorStore>((set, get) => ({
     // Vérifier si déjà en cache
     const cached = state.palettes.get(partNum);
     if (cached) {
-      console.log(`🎨 Palette pour ${partNum} récupérée depuis le cache (${cached.length} couleurs)`);
+
       return cached;
     }
 
     // Vérifier si déjà en cours de chargement
     if (state.loadingParts.has(partNum)) {
-      console.log(`⏳ Chargement de ${partNum} déjà en cours, attente...`);
+
       // Attendre que le chargement se termine
       return new Promise((resolve) => {
         const checkInterval = setInterval(() => {
@@ -63,7 +63,7 @@ export const useColorStore = create<ColorStore>((set, get) => ({
         error: null
       }));
 
-      console.log(`🔄 Chargement de la palette locale pour ${partNum}...`);
+  
       
       // Charger depuis les CSV locaux (pas d'appel API)
       const palette = await getLocalColorPalette(partNum);
@@ -83,7 +83,7 @@ export const useColorStore = create<ColorStore>((set, get) => ({
         };
       });
 
-      console.log(`✅ Palette pour ${partNum} chargée et mise en cache (${palette.length} couleurs)`);
+  
       return palette;
       
     } catch (error) {
@@ -114,16 +114,16 @@ export const useColorStore = create<ColorStore>((set, get) => ({
 
   // Pré-charger les palettes des pièces courantes
   preloadCommonPalettes: async (): Promise<void> => {
-    console.log('🚀 Pré-chargement des palettes courantes depuis les CSV locaux...');
+  
     
     try {
       // Charger les pièces courantes (pas de délai nécessaire car pas d'appel API)
       for (const partNum of COMMON_1X1_PARTS) {
         await get().loadPalette(partNum);
-        console.log(`✅ Palette ${partNum} pré-chargée`);
+  
       }
       
-      console.log('✅ Pré-chargement terminé - Aucun appel API effectué');
+    
     } catch (error) {
       console.error('❌ Erreur lors du pré-chargement:', error);
     }
@@ -131,7 +131,7 @@ export const useColorStore = create<ColorStore>((set, get) => ({
 
   // Vider le cache
   clearCache: () => {
-    console.log('🗑️ Cache des palettes vidé');
+  
     set({
       palettes: new Map(),
       isLoading: false,

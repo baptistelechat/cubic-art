@@ -16,7 +16,6 @@ function App() {
 
   // Pré-charger les palettes au démarrage de l'app
   useEffect(() => {
-    console.log('🚀 Démarrage de l\'application - Pré-chargement des palettes...');
     preloadCommonPalettes().catch(error => {
       console.error('❌ Erreur lors du pré-chargement des palettes:', error);
     });

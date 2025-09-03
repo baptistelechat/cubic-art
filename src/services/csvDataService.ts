@@ -5,121 +5,110 @@ import type { LegoColor } from "@/types";
  * Fournit un accès rapide et fiable aux données de couleurs et pièces
  */
 
-interface CSVColor {
-  id: number;
-  name: string;
-  rgb: string; // Format hex sans # (ex: "05131D")
-  is_trans: boolean;
-  num_parts: number;
-  num_sets: number;
-  y1: number;
-  y2: number;
-}
-
 interface CSVInventoryPart {
   inventory_id: number;
   part_num: string;
   color_id: number;
   quantity: number;
   is_spare: boolean;
-  img_url: string;
-}
-
-interface CSVElement {
-  element_id: string;
-  part_num: string;
-  color_id: number;
-  design_id: string;
 }
 
 // Cache pour les données CSV
-let colorsCache: Map<number, CSVColor> | null = null;
+let colorsCache: Map<number, LegoColor> | null = null;
 let inventoryPartsCache: Map<string, CSVInventoryPart[]> | null = null;
 let elementsCache: Map<string, string> | null = null; // (part_num-color_id) -> element_id
 
 /**
- * Parse une ligne CSV en tenant compte des guillemets
+ * Charge et parse les fichiers colors.csv (principal + splittés)
  */
-const parseCSVLine = (line: string): string[] => {
-  const result: string[] = [];
-  let current = "";
-  let inQuotes = false;
-
-  for (let i = 0; i < line.length; i++) {
-    const char = line[i];
-
-    if (char === '"') {
-      inQuotes = !inQuotes;
-    } else if (char === "," && !inQuotes) {
-      result.push(current.trim());
-      current = "";
-    } else {
-      current += char;
-    }
-  }
-
-  result.push(current.trim());
-  return result;
-};
-
-/**
- * Charge et parse le fichier colors.csv
- */
-const loadColors = async (): Promise<Map<number, CSVColor>> => {
-  if (colorsCache) {
+export const loadColors = async (): Promise<Map<number, LegoColor>> => {
+  if (colorsCache && colorsCache.size > 0) {
     return colorsCache;
   }
 
   try {
-    console.log("📊 Chargement du fichier colors.csv...");
-    const response = await fetch("/data/colors.csv");
-
-    if (!response.ok) {
-      throw new Error(
-        `Erreur lors du chargement de colors.csv: ${response.status}`
-      );
-    }
-
-    const csvText = await response.text();
-    const lines = csvText.split("\n").filter((line) => line.trim());
-
-    // Ignorer la première ligne (headers)
-    const headers = parseCSVLine(lines[0]);
-    console.log("📋 Headers colors.csv:", headers);
+    const rows = await loadProjectCSVFiles("colors.csv");
+    const headers = rows[0];
+    const idIndex = headers.indexOf("id");
+    const nameIndex = headers.indexOf("name");
+    const rgbIndex = headers.indexOf("rgb");
+    const isTransIndex = headers.indexOf("is_trans");
 
     colorsCache = new Map();
 
-    for (let i = 1; i < lines.length; i++) {
-      const values = parseCSVLine(lines[i]);
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i];
+      if (row.length > Math.max(idIndex, nameIndex, rgbIndex, isTransIndex)) {
+        const colorId = parseInt(row[idIndex], 10);
+        const hex = row[rgbIndex].startsWith("#")
+          ? row[rgbIndex]
+          : `#${row[rgbIndex]}`;
+        const rgbArray = hexToRgbArray(row[rgbIndex]);
 
-      if (values.length >= 8) {
-        const color: CSVColor = {
-          id: parseInt(values[0], 10),
-          name: values[1],
-          rgb: values[2], // Déjà en format hex sans #
-          is_trans: values[3].toLowerCase() === "true",
-          num_parts: parseInt(values[4], 10) || 0,
-          num_sets: parseInt(values[5], 10) || 0,
-          y1: parseInt(values[6], 10) || 0,
-          y2: parseInt(values[7], 10) || 0,
+        const color: LegoColor = {
+          id: colorId,
+          name: row[nameIndex],
+          hex: hex,
+          rgb: rgbArray,
         };
-
-        colorsCache.set(color.id, color);
+        colorsCache.set(colorId, color);
       }
     }
 
-    console.log(`✅ ${colorsCache.size} couleurs chargées depuis colors.csv`);
     return colorsCache;
   } catch (error) {
-    console.error("❌ Erreur lors du chargement de colors.csv:", error);
+    console.error("Erreur lors du chargement des couleurs:", error);
     throw error;
   }
 };
 
-/**
- * Charge et parse le fichier inventory_parts.csv
- */
-const loadInventoryParts = async (): Promise<
+// Fonction pour charger les fichiers CSV spécifiques du projet
+const loadProjectCSVFiles = async (fileName: string): Promise<string[][]> => {
+  try {
+    const response = await fetch(`/data/${fileName}`);
+
+    if (!response.ok) {
+      throw new Error(`Fichier ${fileName} non trouvé`);
+    }
+
+    const text = await response.text();
+    const rows = text
+      .split("\n")
+      .filter((row) => row.trim() !== "") // Filtrer les lignes vides
+      .map((row) => row.split(","));
+
+    return rows;
+  } catch (error) {
+    console.error(`Erreur lors du chargement du fichier ${fileName}:`, error);
+    throw error;
+  }
+};
+
+// Fonction pour fusionner les fichiers inventory_parts splittés
+const loadInventoryPartsSplit = async (): Promise<string[][]> => {
+  try {
+    const [file1Data, file2Data] = await Promise.all([
+      loadProjectCSVFiles("inventory_parts_1.csv"),
+      loadProjectCSVFiles("inventory_parts_2.csv"),
+    ]);
+
+    // Fusionner les données : en-tête du premier fichier + données des deux fichiers
+    const header = file1Data[0];
+    const data1 = file1Data.slice(1);
+    const data2 = file2Data.slice(1); // Exclure l'en-tête du second fichier
+
+    return [header, ...data1, ...data2];
+  } catch (error) {
+    console.error(
+      "Erreur lors du chargement des fichiers inventory_parts splittés:",
+      error
+    );
+    throw error;
+  }
+};
+
+// Fonction pour charger et parser les inventory_parts avec la nouvelle logique
+export const loadInventoryParts = async (): Promise<
   Map<string, CSVInventoryPart[]>
 > => {
   if (inventoryPartsCache) {
@@ -127,109 +116,78 @@ const loadInventoryParts = async (): Promise<
   }
 
   try {
-    console.log("📊 Chargement du fichier inventory_parts.csv...");
-    const response = await fetch("/data/inventory_parts.csv");
-
-    if (!response.ok) {
-      throw new Error(
-        `Erreur lors du chargement de inventory_parts.csv: ${response.status}`
-      );
-    }
-
-    const csvText = await response.text();
-    const lines = csvText.split("\n").filter((line) => line.trim());
-
-    // Ignorer la première ligne (headers)
-    const headers = parseCSVLine(lines[0]);
-    console.log("📋 Headers inventory_parts.csv:", headers);
+    const rows = await loadInventoryPartsSplit();
+    const headers = rows[0];
+    const inventoryIdIndex = headers.indexOf("inventory_id");
+    const partNumIndex = headers.indexOf("part_num");
+    const colorIdIndex = headers.indexOf("color_id");
+    const quantityIndex = headers.indexOf("quantity");
+    const isSpareIndex = headers.indexOf("is_spare");
 
     inventoryPartsCache = new Map();
 
-    for (let i = 1; i < lines.length; i++) {
-      const values = parseCSVLine(lines[i]);
-
-      if (values.length >= 6) {
-        const inventoryPart: CSVInventoryPart = {
-          inventory_id: parseInt(values[0], 10),
-          part_num: values[1],
-          color_id: parseInt(values[2], 10),
-          quantity: parseInt(values[3], 10),
-          is_spare: values[4].toLowerCase() === "true",
-          img_url: values[5] || "",
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i];
+      if (
+        row.length >
+        Math.max(
+          inventoryIdIndex,
+          partNumIndex,
+          colorIdIndex,
+          quantityIndex,
+          isSpareIndex
+        )
+      ) {
+        const part: CSVInventoryPart = {
+          inventory_id: parseInt(row[inventoryIdIndex], 10),
+          part_num: row[partNumIndex],
+          color_id: parseInt(row[colorIdIndex], 10),
+          quantity: parseInt(row[quantityIndex], 10) || 0,
+          is_spare: row[isSpareIndex] === "t",
         };
 
-        // Grouper par part_num
-        if (!inventoryPartsCache.has(inventoryPart.part_num)) {
-          inventoryPartsCache.set(inventoryPart.part_num, []);
+        if (!inventoryPartsCache.has(part.part_num)) {
+          inventoryPartsCache.set(part.part_num, []);
         }
-
-        inventoryPartsCache.get(inventoryPart.part_num)!.push(inventoryPart);
+        inventoryPartsCache.get(part.part_num)!.push(part);
       }
     }
 
-    console.log(
-      `✅ ${inventoryPartsCache.size} pièces chargées depuis inventory_parts.csv`
-    );
     return inventoryPartsCache;
   } catch (error) {
-    console.error(
-      "❌ Erreur lors du chargement de inventory_parts.csv:",
-      error
-    );
+    console.error("Erreur lors du chargement des pièces d'inventaire:", error);
     throw error;
   }
 };
 
 /**
- * Charge et parse le fichier elements.csv
+ * Charge et parse les fichiers elements.csv (principal + splittés)
  */
-const loadElements = async (): Promise<Map<string, string>> => {
+export const loadElements = async (): Promise<Map<string, string>> => {
   if (elementsCache) {
     return elementsCache;
   }
 
   try {
-    console.log("📊 Chargement du fichier elements.csv...");
-    const response = await fetch("/data/elements.csv");
-
-    if (!response.ok) {
-      throw new Error(
-        `Erreur lors du chargement de elements.csv: ${response.status}`
-      );
-    }
-
-    const csvText = await response.text();
-    const lines = csvText.split("\n").filter((line) => line.trim());
-
-    // Ignorer la première ligne (headers)
-    const headers = parseCSVLine(lines[0]);
-    console.log("📋 Headers elements.csv:", headers);
+    const rows = await loadProjectCSVFiles("elements.csv");
+    const headers = rows[0];
+    const elementIdIndex = headers.indexOf("element_id");
+    const partNumIndex = headers.indexOf("part_num");
+    const colorIdIndex = headers.indexOf("color_id");
 
     elementsCache = new Map();
 
-    for (let i = 1; i < lines.length; i++) {
-      const values = parseCSVLine(lines[i]);
-
-      if (values.length >= 4) {
-        const element: CSVElement = {
-          element_id: values[0],
-          part_num: values[1],
-          color_id: parseInt(values[2], 10),
-          design_id: values[3] || "",
-        };
-
-        // Créer la clé part_num-color_id
-        const key = `${element.part_num}-${element.color_id}`;
-        elementsCache.set(key, element.element_id);
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i];
+      if (row.length > Math.max(elementIdIndex, partNumIndex, colorIdIndex)) {
+        const key = `${row[partNumIndex]}-${row[colorIdIndex]}`;
+        elementsCache.set(key, row[elementIdIndex]);
       }
     }
 
-    console.log(
-      `✅ ${elementsCache.size} éléments chargés depuis elements.csv`
-    );
     return elementsCache;
   } catch (error) {
-    console.error("❌ Erreur lors du chargement de elements.csv:", error);
+    console.error("Erreur lors du chargement des éléments:", error);
     throw error;
   }
 };
@@ -262,10 +220,6 @@ export const getLocalColorPalette = async (
   partNum: string = "3024"
 ): Promise<LegoColor[]> => {
   try {
-    console.log(
-      `🎨 Récupération de la palette locale pour la pièce ${partNum}`
-    );
-
     // Charger les données CSV
     const [colors, inventoryParts] = await Promise.all([
       loadColors(),
@@ -289,10 +243,6 @@ export const getLocalColorPalette = async (
         .map((item) => item.color_id)
     );
 
-    console.log(
-      `🔍 ${uniqueColorIds.size} couleurs uniques trouvées pour ${partNum}`
-    );
-
     // Convertir en format LegoColor
     const legoColors: LegoColor[] = [];
 
@@ -300,23 +250,12 @@ export const getLocalColorPalette = async (
       const colorData = colors.get(colorId);
 
       if (colorData) {
-        // Filtrer les couleurs transparentes (is_trans = true)
-        if (colorData.is_trans) {
-          console.log(`🚫 Couleur transparente exclue: ${colorData.name}`);
+        // Filtrer les couleurs transparentes (nom commençant par "Trans-")
+        if (colorData.name.startsWith("Trans-")) {
           continue;
         }
 
-        const hex = colorData.rgb.startsWith("#")
-          ? colorData.rgb
-          : `#${colorData.rgb}`;
-        const rgb = hexToRgbArray(colorData.rgb);
-
-        legoColors.push({
-          id: colorData.id,
-          name: colorData.name,
-          hex: hex,
-          rgb: rgb,
-        });
+        legoColors.push(colorData);
       } else {
         console.warn(`⚠️ Couleur ${colorId} non trouvée dans colors.csv`);
       }
@@ -324,11 +263,6 @@ export const getLocalColorPalette = async (
 
     // Trier par nom pour un affichage cohérent
     legoColors.sort((a, b) => a.name.localeCompare(b.name));
-
-    const transparentCount = uniqueColorIds.size - legoColors.length;
-    console.log(
-      `✅ Palette locale chargée: ${legoColors.length} couleurs opaques (${transparentCount} transparentes exclues)`
-    );
 
     return legoColors;
   } catch (error) {
@@ -356,17 +290,7 @@ export const getLocalColor = async (
       return null;
     }
 
-    const hex = colorData.rgb.startsWith("#")
-      ? colorData.rgb
-      : `#${colorData.rgb}`;
-    const rgb = hexToRgbArray(colorData.rgb);
-
-    return {
-      id: colorData.id,
-      name: colorData.name,
-      hex: hex,
-      rgb: rgb,
-    };
+    return colorData;
   } catch (error) {
     console.error(
       `❌ Erreur lors de la récupération de la couleur ${colorId}:`,
@@ -420,7 +344,6 @@ export const getLocalBulkElementIds = async (
       }
     }
 
-    console.log(`📦 ${elementIdsMap.size}/${items.length} element_ids trouvés`);
     return elementIdsMap;
   } catch (error) {
     console.error(
@@ -437,27 +360,27 @@ export const getLocalBulkElementIds = async (
  */
 export const getTechnicPlateColors = async (): Promise<LegoColor[]> => {
   try {
-    console.log("🔧 Récupération des couleurs pour la plaque Technic 16x16 (65803)");
-    
     // Utiliser la fonction existante pour récupérer les couleurs de la pièce 65803
     const colors = await getLocalColorPalette("65803");
-    
+
     // Trier par ID pour un affichage cohérent
     const sortedColors = colors.sort((a, b) => a.id - b.id);
-    
-    console.log(`✅ ${sortedColors.length} couleurs trouvées pour la plaque 65803:`, 
-      sortedColors.map(c => `${c.name} (${c.id})`).join(", "));
-    
+
     return sortedColors;
   } catch (error) {
-    console.error("❌ Erreur lors de la récupération des couleurs de la plaque Technic:", error);
+    console.error(
+      "❌ Erreur lors de la récupération des couleurs de la plaque Technic:",
+      error
+    );
     // Retourner une couleur par défaut en cas d'erreur
-    return [{
-      id: 0,
-      name: "Black",
-      hex: "#05131D",
-      rgb: [5, 19, 29]
-    }];
+    return [
+      {
+        id: 0,
+        name: "Black",
+        hex: "#05131D",
+        rgb: [5, 19, 29],
+      },
+    ];
   }
 };
 
@@ -467,27 +390,27 @@ export const getTechnicPlateColors = async (): Promise<LegoColor[]> => {
  */
 export const getTechnicConnectorColors = async (): Promise<LegoColor[]> => {
   try {
-    console.log("🔧 Récupération des couleurs pour le connecteur Technic (61332)");
-    
     // Utiliser la fonction existante pour récupérer les couleurs de la pièce 61332
     const colors = await getLocalColorPalette("61332");
-    
+
     // Trier par ID pour un affichage cohérent
     const sortedColors = colors.sort((a, b) => a.id - b.id);
-    
-    console.log(`✅ ${sortedColors.length} couleurs trouvées pour le connecteur 61332:`, 
-      sortedColors.map(c => `${c.name} (${c.id})`).join(", "));
-    
+
     return sortedColors;
   } catch (error) {
-    console.error("❌ Erreur lors de la récupération des couleurs du connecteur Technic:", error);
+    console.error(
+      "❌ Erreur lors de la récupération des couleurs du connecteur Technic:",
+      error
+    );
     // Retourner une couleur par défaut en cas d'erreur
-    return [{
-      id: 0,
-      name: "Black",
-      hex: "#05131D",
-      rgb: [5, 19, 29]
-    }];
+    return [
+      {
+        id: 0,
+        name: "Black",
+        hex: "#05131D",
+        rgb: [5, 19, 29],
+      },
+    ];
   }
 };
 
@@ -498,20 +421,19 @@ export const clearCSVCache = (): void => {
   colorsCache = null;
   inventoryPartsCache = null;
   elementsCache = null;
-  console.log("🗑️ Cache CSV vidé");
 };
 
 /**
  * Récupère les statistiques du cache CSV
  */
 export const getCSVCacheStats = (): {
-  colors: number;
-  parts: number;
-  elements: number;
+  colors: number | null;
+  inventoryParts: number | null;
+  elements: number | null;
 } => {
   return {
-    colors: colorsCache?.size || 0,
-    parts: inventoryPartsCache?.size || 0,
-    elements: elementsCache?.size || 0,
+    colors: colorsCache?.size || null,
+    inventoryParts: inventoryPartsCache?.size || null,
+    elements: elementsCache?.size || null,
   };
 };

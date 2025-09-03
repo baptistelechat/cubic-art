@@ -310,7 +310,7 @@ export async function processImageToMosaic(
     let colorPalette = colorPaletteOverride || config.colorPalette;
     
     if (colorPalette && colorPalette.length > 0) {
-      console.log(`Utilisation de la palette fournie: ${colorPalette.length} couleurs disponibles`);
+    
     } else {
       console.warn('Aucune palette de couleurs fournie, utilisation de la palette par défaut');
       colorPalette = config.colorPalette || [];

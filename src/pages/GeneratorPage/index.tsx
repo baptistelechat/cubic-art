@@ -78,12 +78,15 @@ export function GeneratorPage() {
   useEffect(() => {
     const loadColorPalette = async () => {
       try {
-        console.log("🎨 Chargement de la palette depuis le store...");
+    
+        
+
+        
         const palette = await loadPalette("3024");
         setCurrentPalette(palette);
         // Mettre à jour la config avec la nouvelle palette
         updateConfig({ colorPalette: palette });
-        console.log(`✅ Palette chargée: ${palette.length} couleurs`);
+  
       } catch (error) {
         console.error("❌ Erreur lors du chargement de la palette:", error);
         setCurrentPalette(config.colorPalette);
@@ -366,6 +369,8 @@ export function GeneratorPage() {
               </Card>
             </div>
           </div>
+
+
 
           {/* Deuxième section : Résultats et actions */}
           <div className="space-y-6">
