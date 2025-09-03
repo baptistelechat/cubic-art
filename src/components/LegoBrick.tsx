@@ -68,7 +68,7 @@ export const LegoBrick = ({
         <Tooltip>
           <TooltipTrigger asChild>{brickElement}</TooltipTrigger>
           <TooltipContent>
-            <div className="text-center">
+            <div className="text-center flex gap-1 items-end">
               <div className="font-medium">{color.name}</div>
               <div className="text-xs opacity-70">#{color.id}</div>
             </div>

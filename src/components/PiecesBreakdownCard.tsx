@@ -8,9 +8,10 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import type { MosaicConfig, MosaicResult } from "@/types";
+import type { MosaicConfig, MosaicResult, LegoColor } from "@/types";
 import { Palette, Settings, ToyBrick } from "lucide-react";
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { getTechnicPlateColors } from "@/services/csvDataService";
 
 interface PiecesBreakdownCardProps {
   mosaicResult: MosaicResult;
@@ -21,6 +22,39 @@ export const PiecesBreakdownCard: React.FC<PiecesBreakdownCardProps> = ({
   mosaicResult,
   config,
 }) => {
+  // État pour les couleurs des plaques Technic (chargées depuis les CSV)
+  const [technicColors, setTechnicColors] = useState<LegoColor[]>([]);
+  
+  // Charger les couleurs Technic depuis les CSV
+  useEffect(() => {
+    const loadTechnicColors = async () => {
+      try {
+        const colors = await getTechnicPlateColors();
+        setTechnicColors(colors);
+      } catch (error) {
+        console.error("Erreur lors du chargement des couleurs Technic:", error);
+        // Couleur par défaut en cas d'erreur
+        setTechnicColors([{
+          id: 0,
+          name: "Black",
+          hex: "#05131D",
+          rgb: [5, 19, 29]
+        }]);
+      }
+    };
+    
+    loadTechnicColors();
+  }, []);
+  
+  // Fonction pour obtenir la première couleur Technic disponible (généralement Black)
+  const getDefaultTechnicColor = (): LegoColor => {
+    return technicColors[0] || {
+      id: 0,
+      name: "Black",
+      hex: "#05131D",
+      rgb: [5, 19, 29]
+    };
+  };
   if (!mosaicResult.piecesList) {
     return null;
   }
@@ -79,8 +113,8 @@ export const PiecesBreakdownCard: React.FC<PiecesBreakdownCardProps> = ({
                     const legoColorB = config.colorPalette.find(
                       (c) => c.hex === colorHexB
                     );
-                    const idA = legoColorA?.id || 999999;
-                    const idB = legoColorB?.id || 999999;
+                    const idA = legoColorA?.id ?? 999999;
+                    const idB = legoColorB?.id ?? 999999;
                     return idA - idB;
                   })
                   .map(([colorInfo, count]) => {
@@ -109,7 +143,7 @@ export const PiecesBreakdownCard: React.FC<PiecesBreakdownCardProps> = ({
                               {colorName}
                             </div>
                             <div className="text-xs text-gray-500">
-                              #3024 | {legoColor?.id || "N/A"}
+                              #3024 | {legoColor?.id !== undefined ? legoColor.id : "N/A"}
                             </div>
                           </div>
                         </div>
@@ -205,26 +239,16 @@ export const PiecesBreakdownCard: React.FC<PiecesBreakdownCardProps> = ({
                         <div className="flex items-center space-x-2">
                           {/* Représentation visuelle spécifique */}
                           {elementName.includes("Connecteur") ? (
-                            /* Connecteur Technic - Composant réutilisable */
+                            /* Connecteur Technic - Couleur depuis CSV */
                             <TechnicConnector
-                              color={{
-                                id: 6279875,
-                                name: "Black",
-                                hex: "#1b2a34",
-                                rgb: [27, 42, 52],
-                              }}
+                              color={getDefaultTechnicColor()}
                               size="md"
                               showTooltip={false}
                             />
                           ) : (
-                            /* Plaque de base Technic - Composant réutilisable */
+                            /* Plaque de base Technic - Couleur depuis CSV */
                             <TechnicPlate16x16
-                              color={{
-                                id: 6302092,
-                                name: "Black",
-                                hex: "#1b2a34",
-                                rgb: [27, 42, 52],
-                              }}
+                              color={getDefaultTechnicColor()}
                               size="md"
                               showTooltip={false}
                             />

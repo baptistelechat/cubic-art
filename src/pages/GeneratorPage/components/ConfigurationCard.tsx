@@ -198,12 +198,14 @@ export const ConfigurationCard: React.FC<ConfigurationCardProps> = ({
             </div>
           </div>
 
+
+
           <div className="text-left">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Couleur de remplacement de la transparence (Import PNG)
             </label>
             <Select
-              value={backgroundColorForTransparency.id.toString()}
+              value={backgroundColorForTransparency?.id?.toString() || EMPTY_COLOR.id.toString()}
               onValueChange={(value) => {
                 if (value === "-1") {
                   setBackgroundColorForTransparency(EMPTY_COLOR);
@@ -220,26 +222,26 @@ export const ConfigurationCard: React.FC<ConfigurationCardProps> = ({
               <SelectTrigger className="w-full">
                 <SelectValue>
                   <div className="flex items-center space-x-2">
-                    {backgroundColorForTransparency.id === -1 ? (
+                    {(backgroundColorForTransparency?.id ?? EMPTY_COLOR.id) === -1 ? (
                       <div className="w-6 h-6 border-2 border-dashed border-gray-400 rounded flex items-center justify-center">
                         <span className="text-xs text-gray-500">∅</span>
                       </div>
                     ) : (
                       <LegoBrick
-                        color={backgroundColorForTransparency}
+                        color={backgroundColorForTransparency || EMPTY_COLOR}
                         size="sm"
                         showTooltip={false}
                       />
                     )}
-                    <span>{backgroundColorForTransparency.name}</span>
+                    <span>{backgroundColorForTransparency?.name || EMPTY_COLOR.name}</span>
                     <span className="text-xs text-gray-600">
-                      {backgroundColorForTransparency.id !== -1 &&
-                        `#${backgroundColorForTransparency.id}`}
+                      {(backgroundColorForTransparency?.id ?? EMPTY_COLOR.id) !== -1 &&
+                        `#${backgroundColorForTransparency?.id ?? EMPTY_COLOR.id}`}
                     </span>
                   </div>
                 </SelectValue>
               </SelectTrigger>
-              <SelectContent className="max-h-60">
+              <SelectContent className="max-h-60 overflow-y-auto scroll-smooth overscroll-contain">
                 <SelectItem
                   key={EMPTY_COLOR.id}
                   value={EMPTY_COLOR.id.toString()}
@@ -251,15 +253,17 @@ export const ConfigurationCard: React.FC<ConfigurationCardProps> = ({
                     <span className="text-sm">{EMPTY_COLOR.name}</span>
                   </div>
                 </SelectItem>
-                {config.colorPalette.map((color) => (
-                  <SelectItem key={color.id} value={color.id.toString()}>
-                    <div className="flex items-center space-x-2">
-                      <LegoBrick color={color} size="sm" showTooltip={false} />
-                      <span>{color.name}</span>
-                      <span className="text-xs text-gray-600">#{color.id}</span>
-                    </div>
-                  </SelectItem>
-                ))}
+                {config.colorPalette
+                  .sort((a, b) => a.id - b.id)
+                  .map((color) => (
+                    <SelectItem key={color.id} value={color.id.toString()}>
+                      <div className="flex items-center space-x-2">
+                        <LegoBrick color={color} size="sm" showTooltip={false} />
+                        <span>{color.name}</span>
+                        <span className="text-xs text-gray-600">#{color.id}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
           </div>

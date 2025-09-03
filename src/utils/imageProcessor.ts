@@ -4,7 +4,7 @@ import type {
   MosaicImageData,
   MosaicResult,
 } from "@/types";
-import { LEGO_COLORS } from "./legoColors";
+import { findClosestColor } from "@/services/colorPaletteService";
 
 // Fonction de génération d'UUID compatible avec HTTP (alternative à crypto.randomUUID)
 function generateUUID(): string {
@@ -113,40 +113,17 @@ export function getModularConfiguration(gridWidth: number, gridHeight: number) {
 }
 // ================================================
 
-// Calcul de la distance Delta E pour le mapping des couleurs
-function deltaE(
-  rgb1: [number, number, number],
-  rgb2: [number, number, number]
-): number {
-  const [r1, g1, b1] = rgb1;
-  const [r2, g2, b2] = rgb2;
 
-  // Conversion RGB vers LAB simplifiée pour Delta E
-  const deltaR = r1 - r2;
-  const deltaG = g1 - g2;
-  const deltaB = b1 - b2;
 
-  // Formule Delta E simplifiée (approximation)
-  return Math.sqrt(
-    2 * deltaR * deltaR + 4 * deltaG * deltaG + 3 * deltaB * deltaB
-  );
+// Trouve la couleur LEGO la plus proche dans une palette donnée
+function findClosestLegoColor(
+  rgb: [number, number, number], 
+  palette: LegoColor[]
+): LegoColor {
+  return findClosestColor(rgb, palette);
 }
 
-// Trouve la couleur LEGO la plus proche
-function findClosestLegoColor(rgb: [number, number, number]): LegoColor {
-  let closestColor = LEGO_COLORS[0];
-  let minDistance = deltaE(rgb, closestColor.rgb);
 
-  for (const color of LEGO_COLORS) {
-    const distance = deltaE(rgb, color.rgb);
-    if (distance < minDistance) {
-      minDistance = distance;
-      closestColor = color;
-    }
-  }
-
-  return closestColor;
-}
 
 // Redimensionne l'image selon les dimensions de grille configurées avec recadrage adaptatif
 function resizeImageToGrid(
@@ -273,13 +250,14 @@ const EMPTY_LEGO_COLOR: LegoColor = {
   rgb: [0, 0, 0],
 };
 
-// Mappe les couleurs RGB vers les couleurs LEGO
+// Mappe les couleurs RGB vers les couleurs LEGO avec palette personnalisée
 function mapToLegoColors(
-  rgbGrid: ([number, number, number] | null)[][]
+  rgbGrid: ([number, number, number] | null)[][],
+  palette: LegoColor[]
 ): LegoColor[][] {
   return rgbGrid.map((row) =>
     row.map((rgb) =>
-      rgb === null ? EMPTY_LEGO_COLOR : findClosestLegoColor(rgb)
+      rgb === null ? EMPTY_LEGO_COLOR : findClosestLegoColor(rgb, palette)
     )
   );
 }
@@ -321,82 +299,100 @@ function generatePiecesCoordinates(
 export async function processImageToMosaic(
   imageFile: File,
   config: MosaicConfig,
-  backgroundColorForTransparency?: LegoColor
+  backgroundColorForTransparency?: LegoColor,
+  colorPaletteOverride?: LegoColor[]
 ): Promise<MosaicResult> {
   const startTime = performance.now();
 
+  // Fonction interne pour traiter l'image une fois chargée
+  const processLoadedImage = async (img: HTMLImageElement): Promise<MosaicResult> => {
+    // Récupérer la palette de couleurs appropriée
+    let colorPalette = colorPaletteOverride || config.colorPalette;
+    
+    if (colorPalette && colorPalette.length > 0) {
+      console.log(`Utilisation de la palette fournie: ${colorPalette.length} couleurs disponibles`);
+    } else {
+      console.warn('Aucune palette de couleurs fournie, utilisation de la palette par défaut');
+      colorPalette = config.colorPalette || [];
+    }
+    // Calcul des constantes selon les dimensions configurées
+    const gridWidth = config.width;
+    const gridHeight = config.height;
+    const totalPieces = gridWidth * gridHeight;
+    const technicBricksWidth = Math.ceil(gridWidth / TECHNIC_BASEPLATE_SIZE);
+    const technicBricksHeight = Math.ceil(gridHeight / TECHNIC_BASEPLATE_SIZE);
+    const totalTechnicBricks = technicBricksWidth * technicBricksHeight;
+    const connectorsNeeded = calculateConnectorsNeeded(technicBricksWidth, technicBricksHeight);
+
+    // 1. Redimensionnement selon les dimensions configurées
+    const resizedImageData = resizeImageToGrid(img, gridWidth, gridHeight);
+
+    // 2. Extraction de la grille RGB avec gestion de la transparence
+    const rgbGrid = extractRGBGrid(
+      resizedImageData,
+      backgroundColorForTransparency
+    );
+
+    // 3. Mapping vers les couleurs LEGO avec la palette appropriée
+    const legoGrid = mapToLegoColors(rgbGrid, colorPalette);
+
+    // 4. Génération des données de résultat
+    const pieces = generatePiecesCoordinates(legoGrid);
+    const piecesList = generatePiecesList(legoGrid);
+    const processingTime = performance.now() - startTime;
+
+    // 5. Création de l'objet MosaicImageData
+    const imageData: MosaicImageData = {
+      id: generateUUID(),
+      name: imageFile.name,
+      originalUrl: URL.createObjectURL(imageFile),
+      width: img.naturalWidth,
+      height: img.naturalHeight,
+      createdAt: new Date(),
+    };
+
+    // 6. Calcul des éléments modulaires nécessaires
+    const modulePiecesList = {
+      [`Plaque de base Technic 16x16 (${TECHNIC_BASEPLATE_REF})`]:
+        totalTechnicBricks,
+      [`Connecteur Technic (${CONNECTOR_PEG_REF})`]: connectorsNeeded,
+      [`Pièce 1x1 (${PLATE_1X1_REF})`]: totalPieces,
+    };
+
+    // 7. Résultat final avec système modulaire
+    const result: MosaicResult = {
+      imageData,
+      config,
+      grid: legoGrid,
+      exportFormats: ["png", "svg", "json"],
+      processingTime,
+      pieces,
+      plaqueDeBase: {
+        ref: `${totalTechnicBricks}x Plaque de base Technic ${TECHNIC_BASEPLATE_REF}`,
+        size: `${gridWidth}x${gridHeight} (${technicBricksWidth}x${technicBricksHeight} briques)`,
+      },
+      totalPieces: totalPieces,
+      piecesList: { ...piecesList, ...modulePiecesList },
+    };
+
+    return result;
+  };
+
+  // Retourner une Promise qui gère le chargement de l'image
   return new Promise((resolve, reject) => {
     const img = new Image();
     const url = URL.createObjectURL(imageFile);
 
     img.onload = () => {
-      try {
-        // Calcul des constantes selon les dimensions configurées
-        const gridWidth = config.width;
-        const gridHeight = config.height;
-        const totalPieces = gridWidth * gridHeight;
-        const technicBricksWidth = Math.ceil(gridWidth / TECHNIC_BASEPLATE_SIZE);
-        const technicBricksHeight = Math.ceil(gridHeight / TECHNIC_BASEPLATE_SIZE);
-        const totalTechnicBricks = technicBricksWidth * technicBricksHeight;
-        const connectorsNeeded = calculateConnectorsNeeded(technicBricksWidth, technicBricksHeight);
-
-        // 1. Redimensionnement selon les dimensions configurées
-        const resizedImageData = resizeImageToGrid(img, gridWidth, gridHeight);
-
-        // 2. Extraction de la grille RGB avec gestion de la transparence
-        const rgbGrid = extractRGBGrid(
-          resizedImageData,
-          backgroundColorForTransparency
-        );
-
-        // 3. Mapping vers les couleurs LEGO
-        const legoGrid = mapToLegoColors(rgbGrid);
-
-        // 4. Génération des données de résultat
-        const pieces = generatePiecesCoordinates(legoGrid);
-        const piecesList = generatePiecesList(legoGrid);
-        const processingTime = performance.now() - startTime;
-
-        // 5. Création de l'objet MosaicImageData
-        const imageData: MosaicImageData = {
-          id: generateUUID(),
-          name: imageFile.name,
-          originalUrl: url,
-          width: img.naturalWidth,
-          height: img.naturalHeight,
-          createdAt: new Date(),
-        };
-
-        // 6. Calcul des éléments modulaires nécessaires
-        const modulePiecesList = {
-          [`Plaque de base Technic 16x16 (${TECHNIC_BASEPLATE_REF})`]:
-            totalTechnicBricks,
-          [`Connecteur Technic (${CONNECTOR_PEG_REF})`]: connectorsNeeded,
-          [`Pièce 1x1 (${PLATE_1X1_REF})`]: totalPieces,
-        };
-
-        // 7. Résultat final avec système modulaire
-        const result: MosaicResult = {
-          imageData,
-          config,
-          grid: legoGrid,
-          exportFormats: ["png", "svg", "json"],
-          processingTime,
-          pieces,
-          plaqueDeBase: {
-            ref: `${totalTechnicBricks}x Plaque de base Technic ${TECHNIC_BASEPLATE_REF}`,
-            size: `${gridWidth}x${gridHeight} (${technicBricksWidth}x${technicBricksHeight} briques)`,
-          },
-          totalPieces: totalPieces,
-          piecesList: { ...piecesList, ...modulePiecesList },
-        };
-
-        resolve(result);
-      } catch (error) {
-        reject(error);
-      } finally {
-        URL.revokeObjectURL(url);
-      }
+      processLoadedImage(img)
+        .then(result => {
+          URL.revokeObjectURL(url);
+          resolve(result);
+        })
+        .catch(error => {
+          URL.revokeObjectURL(url);
+          reject(error);
+        });
     };
 
     img.onerror = () => {

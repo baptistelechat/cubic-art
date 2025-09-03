@@ -1,12 +1,12 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import type { MosaicResult } from "@/types";
+import type { MosaicResult, MosaicConfig } from "@/types";
 import { Download } from "lucide-react";
 import React from "react";
 
 interface DownloadCardProps {
   mosaicResult: MosaicResult | null;
   mosaicCanvas: HTMLCanvasElement | null;
-  config: any;
+  config: MosaicConfig;
 }
 
 // Fonction pour générer le SVG
@@ -95,8 +95,8 @@ export const DownloadCard: React.FC<DownloadCardProps> = ({
       .sort(([colorInfoA], [colorInfoB]) => {
         const colorHexA = colorInfoA.match(/\(([^)]+)\)/)?.[1] || "#000000";
         const colorHexB = colorInfoB.match(/\(([^)]+)\)/)?.[1] || "#000000";
-        const legoColorA = config.colorPalette.find((c: any) => c.hex === colorHexA);
-        const legoColorB = config.colorPalette.find((c: any) => c.hex === colorHexB);
+        const legoColorA = config.colorPalette.find((c) => c.hex === colorHexA);
+        const legoColorB = config.colorPalette.find((c) => c.hex === colorHexB);
         const idA = legoColorA?.id || 999999;
         const idB = legoColorB?.id || 999999;
         return idA - idB;
@@ -104,7 +104,7 @@ export const DownloadCard: React.FC<DownloadCardProps> = ({
       .forEach(([colorInfo, count]) => {
         const colorName = colorInfo.split(" (")[0];
         const colorHex = colorInfo.match(/\(([^)]+)\)/)?.[1] || "#000000";
-        const legoColor = config.colorPalette.find((c: any) => c.hex === colorHex);
+        const legoColor = config.colorPalette.find((c) => c.hex === colorHex);
         const legoId = legoColor?.id || "N/A";
 
         csvContent += `"${colorName}","${legoId}","${colorHex}",${count}\n`;

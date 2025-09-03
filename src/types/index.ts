@@ -91,3 +91,59 @@ export interface ProcessingPipeline {
 
 // Types RGB
 export type RGB = [number, number, number];
+
+// Types BrickLink supprimés (plus utilisés)
+
+// Types supprimés : Rebrickable API (plus utilisés - données CSV locales)
+
+// Types pour la Bill of Materials (BOM)
+export interface BOMItem {
+  part_num: string;
+  color_id: number;
+  quantity: number;
+  color_name?: string;
+  color_hex?: string;
+  element_id?: string; // Pour Pick a Brick
+  avg_price?: number; // Prix moyen (source externe)
+  min_price?: number; // Prix minimum (source externe)
+  max_price?: number; // Prix maximum (source externe)
+}
+
+export interface BillOfMaterials {
+  items: BOMItem[];
+  total_pieces: number;
+  estimated_cost?: {
+    min: number;
+    avg: number;
+    max: number;
+    currency: string;
+  };
+  generated_at: Date;
+}
+
+// Types pour l'export CSV
+export interface PickABrickCSVRow {
+  element_id: string;
+  quantity: number;
+}
+
+export interface BrickLinkCSVRow {
+  ITEMID: string;
+  COLOR: number;
+  QUANTITY: number;
+}
+
+// Types pour les services API
+export interface APIResponse<T> {
+  data: T;
+  meta?: {
+    description: string;
+    message: string;
+  };
+}
+
+export interface APIError {
+  type: string;
+  message: string;
+  details?: unknown;
+}

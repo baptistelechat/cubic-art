@@ -1,22 +1,24 @@
-import { ConfigurationCard } from "./components/ConfigurationCard";
-import { DownloadCard } from "./components/DownloadCard";
 import { LegoBrick } from "@/components/LegoBrick";
 import { MosaicComparison } from "@/components/MosaicComparison";
-import { PiecesBreakdownCard } from "./components/PiecesBreakdownCard";
-import { ProcessingCard } from "./components/ProcessingCard";
 import TechnicConnector from "@/components/TechnicConnector";
 import { TechnicPlate16x16 } from "@/components/TechnicPlate16x16";
-import { UploadCard } from "./components/UploadCard";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { useColorStore } from "@/hooks/useColorStore";
 import { useStore } from "@/hooks/useStore";
 import type { LegoColor, MosaicResult } from "@/types";
 import {
   generateMosaicPreview,
   processImageToMosaic,
 } from "@/utils/imageProcessor";
+import { getTechnicPlateColors, getTechnicConnectorColors } from "@/services/csvDataService";
 import { Palette } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { ConfigurationCard } from "./components/ConfigurationCard";
+import { DownloadCard } from "./components/DownloadCard";
+import { PiecesBreakdownCard } from "./components/PiecesBreakdownCard";
+import { ProcessingCard } from "./components/ProcessingCard";
+import { UploadCard } from "./components/UploadCard";
 
 export function GeneratorPage() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -24,6 +26,8 @@ export function GeneratorPage() {
     null
   );
   const [error, setError] = useState<string | null>(null);
+  const [technicColors, setTechnicColors] = useState<LegoColor[]>([]);
+  const [connectorColors, setConnectorColors] = useState<LegoColor[]>([]);
 
   const {
     config,
@@ -33,6 +37,12 @@ export function GeneratorPage() {
     setMosaicResult,
     updateConfig,
   } = useStore();
+
+  // Store de couleurs pour éviter les erreurs 429
+  const { loadPalette } = useColorStore();
+  const [currentPalette, setCurrentPalette] = useState<LegoColor[] | null>(
+    null
+  );
 
   // État pour stocker le fichier actuel
   const [currentFile, setCurrentFile] = useState<File | null>(null);
@@ -47,10 +57,58 @@ export function GeneratorPage() {
 
   // État pour la couleur de fond de remplacement pour la transparence
   const [backgroundColorForTransparency, setBackgroundColorForTransparency] =
-    useState<LegoColor>(
-      config.colorPalette.find((color) => color.name === "White") ||
-        config.colorPalette[0]
-    );
+    useState<LegoColor>(EMPTY_COLOR);
+
+  // Mettre à jour la couleur de remplacement quand la palette est chargée
+  useEffect(() => {
+    if (config.colorPalette.length > 0) {
+      const whiteColor = config.colorPalette.find(
+        (color) => color.name === "White"
+      );
+      if (whiteColor && backgroundColorForTransparency.id === -1) {
+        setBackgroundColorForTransparency(whiteColor);
+      }
+    }
+  }, [config.colorPalette, backgroundColorForTransparency.id]);
+
+  // Charger la palette de couleurs depuis le store
+  useEffect(() => {
+    const loadColorPalette = async () => {
+      try {
+        console.log("🎨 Chargement de la palette depuis le store...");
+        const palette = await loadPalette("3024");
+        setCurrentPalette(palette);
+        // Mettre à jour la config avec la nouvelle palette
+        updateConfig({ colorPalette: palette });
+        console.log(`✅ Palette chargée: ${palette.length} couleurs`);
+      } catch (error) {
+        console.error("❌ Erreur lors du chargement de la palette:", error);
+        setCurrentPalette(config.colorPalette);
+      }
+    };
+
+    const loadTechnicColors = async () => {
+      try {
+        const colors = await getTechnicPlateColors();
+        setTechnicColors(colors);
+      } catch (error) {
+        console.error("Erreur lors du chargement des couleurs Technic:", error);
+      }
+    };
+
+    const loadConnectorColors = async () => {
+      try {
+        const colors = await getTechnicConnectorColors();
+        setConnectorColors(colors);
+      } catch (error) {
+        console.error("Erreur lors du chargement des couleurs des connecteurs:", error);
+      }
+    };
+
+    loadColorPalette();
+    loadTechnicColors();
+    loadConnectorColors();
+  }, [loadPalette, updateConfig]);
 
   // Fonctions stabilisées avec useCallback pour éviter les boucles infinies
   const stableSetIsProcessing = useCallback(
@@ -76,10 +134,12 @@ export function GeneratorPage() {
           setError(null);
 
           // Traitement de l'image avec la nouvelle configuration
+          const paletteToUse = currentPalette || config.colorPalette;
           const result = await processImageToMosaic(
             currentFile,
             config,
-            backgroundColorForTransparency
+            backgroundColorForTransparency,
+            paletteToUse
           );
 
           // Génération du canvas de prévisualisation
@@ -160,10 +220,12 @@ export function GeneratorPage() {
       setIsProcessing(true);
 
       // Traitement de l'image
+      const paletteToUse = currentPalette || config.colorPalette;
       const result = await processImageToMosaic(
         file,
         config,
-        backgroundColorForTransparency
+        backgroundColorForTransparency,
+        paletteToUse
       );
 
       // Génération du canvas de prévisualisation
@@ -240,7 +302,7 @@ export function GeneratorPage() {
                   {/* Grille de couleurs LEGO */}
                   <TooltipProvider>
                     <div className="grid grid-cols-8 gap-3">
-                      {config.colorPalette.map((color) => (
+                      {(currentPalette || config.colorPalette).map((color) => (
                         <LegoBrick
                           key={color.id}
                           color={color}
@@ -262,29 +324,14 @@ export function GeneratorPage() {
                   {/* Grille de couleurs pour plaques Technic */}
                   <TooltipProvider>
                     <div className="grid grid-cols-8 gap-3">
-                      {/* Black */}
-                      <TechnicPlate16x16
-                        color={{
-                          id: 6302092,
-                          name: "Black",
-                          hex: "#1b2a34",
-                          rgb: [27, 42, 52],
-                        }}
-                        size="md"
-                        showTooltip={true}
-                      />
-
-                      {/* Light Nougat */}
-                      <TechnicPlate16x16
-                        color={{
-                          id: 6421617,
-                          name: "Light Nougat",
-                          hex: "#e1bea1",
-                          rgb: [225, 190, 161],
-                        }}
-                        size="md"
-                        showTooltip={true}
-                      />
+                      {technicColors.map((color) => (
+                        <TechnicPlate16x16
+                          key={color.id}
+                          color={color}
+                          size="md"
+                          showTooltip={true}
+                        />
+                      ))}
                     </div>
                   </TooltipProvider>
 
@@ -299,17 +346,14 @@ export function GeneratorPage() {
                   {/* Grille de couleurs pour connecteurs Technic */}
                   <TooltipProvider>
                     <div className="grid grid-cols-8 gap-3">
-                      {/* Black */}
-                      <TechnicConnector
-                        color={{
-                          id: 6279875,
-                          name: "Black",
-                          hex: "#1b2a34",
-                          rgb: [27, 42, 52],
-                        }}
-                        size="md"
-                        showTooltip={true}
-                      />
+                      {connectorColors.map((color) => (
+                        <TechnicConnector
+                          key={color.id}
+                          color={color}
+                          size="md"
+                          showTooltip={true}
+                        />
+                      ))}
                     </div>
                   </TooltipProvider>
                 </CardContent>

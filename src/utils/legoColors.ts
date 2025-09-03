@@ -87,28 +87,8 @@ export const LEGO_COLORS: LegoColor[] = [
   { id: 6469084, name: "Reddish Orange", hex: "#ca4c0b", rgb: [202, 76, 11] },
 ];
 
-// Mapping des couleurs spécifiques aux plaques Technic 16x16
-// Certaines couleurs ont des IDs différents pour les plaques par rapport aux briques 1x1
-export const TECHNIC_PLATE_COLOR_MAPPING: Record<number, number> = {
-  // Noir : ID différent pour les plaques 16x16
-  302426: 6503260, // Black (1x1) -> Black (16x16 Technic Plate)
-  // Light Nougat : ID différent pour les plaques 16x16
-  6357797: 6503261, // Light Nougat (1x1) -> Light Nougat (16x16 Technic Plate)
-};
-
-// Fonction pour obtenir l'ID de couleur correct pour les plaques Technic 16x16
-export function getTechnicPlateColorId(originalColorId: number): number {
-  return TECHNIC_PLATE_COLOR_MAPPING[originalColorId] || originalColorId;
-}
-
-// Fonction pour créer une couleur avec l'ID de plaque Technic
-export function createTechnicPlateColor(originalColor: LegoColor): LegoColor {
-  const plateColorId = getTechnicPlateColorId(originalColor.id);
-  return {
-    ...originalColor,
-    id: plateColorId,
-  };
-}
+// Note: Les fonctions liées aux plaques Technic ont été déplacées vers defaultConfig.ts
+// et utilisent maintenant les données CSV au lieu de mappings en dur
 
 // Configuration par défaut de la mosaïque
 export const DEFAULT_MOSAIC_CONFIG = {

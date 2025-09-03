@@ -242,6 +242,8 @@ export function HomePage() {
           </Link>
         </div>
       </section>
+      
+      
     </div>
   );
 }

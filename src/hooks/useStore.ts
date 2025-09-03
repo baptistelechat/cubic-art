@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import type { MosaicImageData, MosaicResult, MosaicConfig, AppState } from '@/types';
-import { DEFAULT_MOSAIC_CONFIG } from '@/utils/legoColors';
+import { DEFAULT_MOSAIC_CONFIG } from '@/utils/defaultConfig';
 
 interface StoreActions {
   setCurrentImage: (image: MosaicImageData | null) => void;

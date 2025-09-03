@@ -8,9 +8,11 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import type { MosaicConfig, MosaicResult } from "@/types";
-import { Palette, Settings, ToyBrick } from "lucide-react";
-import React from "react";
+import type { MosaicConfig, MosaicResult, LegoColor } from "@/types";
+import { Palette, Settings, ToyBrick, Euro, TrendingUp } from "lucide-react";
+import React, { useState, useEffect, useCallback } from "react";
+import { generateBOM, formatBOMForDisplay } from "@/services/bomGenerator";
+import { getTechnicPlateColors } from "@/services/csvDataService";
 
 interface PiecesBreakdownCardProps {
   mosaicResult: MosaicResult;
@@ -21,6 +23,76 @@ export const PiecesBreakdownCard: React.FC<PiecesBreakdownCardProps> = ({
   mosaicResult,
   config,
 }) => {
+  const [isGeneratingBom, setIsGeneratingBom] = useState(false);
+  const [bomDisplay, setBomDisplay] = useState<{
+    estimatedCost?: {
+      min: string;
+      avg: string;
+      max: string;
+    };
+    items: Array<{
+      colorName: string;
+      colorHex: string;
+      quantity: number;
+      unitPrice: string;
+      totalPrice: string;
+    }>;
+  } | null>(null);
+  // État pour les couleurs des plaques Technic (chargées depuis les CSV)
+  const [technicColors, setTechnicColors] = useState<LegoColor[]>([]);
+  
+  // Charger les couleurs Technic depuis les CSV
+  useEffect(() => {
+    const loadTechnicColors = async () => {
+      try {
+        const colors = await getTechnicPlateColors();
+        setTechnicColors(colors);
+      } catch (error) {
+        console.error("Erreur lors du chargement des couleurs Technic:", error);
+        // Couleur par défaut en cas d'erreur
+        setTechnicColors([{
+          id: 0,
+          name: "Black",
+          hex: "#05131D",
+          rgb: [5, 19, 29]
+        }]);
+      }
+    };
+    
+    loadTechnicColors();
+  }, []);
+  
+  // Fonction pour obtenir la première couleur Technic disponible (généralement Black)
+  const getDefaultTechnicColor = (): LegoColor => {
+    return technicColors[0] || {
+      id: 0,
+      name: "Black",
+      hex: "#05131D",
+      rgb: [5, 19, 29]
+    };
+  };
+
+  const generateBOMAsync = useCallback(async () => {
+    if (!mosaicResult) return;
+    
+    setIsGeneratingBom(true);
+    try {
+      const generatedBom = await generateBOM(mosaicResult, true);
+      setBomDisplay(formatBOMForDisplay(generatedBom));
+    } catch (error) {
+      console.error('Erreur lors de la génération de la BOM:', error);
+    } finally {
+      setIsGeneratingBom(false);
+    }
+  }, [mosaicResult]);
+
+  // Générer la BOM automatiquement quand la mosaïque change
+  useEffect(() => {
+    if (mosaicResult) {
+      generateBOMAsync();
+    }
+  }, [mosaicResult, generateBOMAsync]);
+
   if (!mosaicResult.piecesList) {
     return null;
   }
@@ -36,9 +108,93 @@ export const PiecesBreakdownCard: React.FC<PiecesBreakdownCardProps> = ({
       <CardContent>
         <Accordion
           type="multiple"
-          defaultValue={["plates-1x1"]}
+          defaultValue={["plates-1x1", "cost-estimation"]}
           className="w-full"
         >
+          {/* Section Estimation des coûts */}
+          {bomDisplay?.estimatedCost && (
+            <AccordionItem value="cost-estimation">
+              <AccordionTrigger className="text-left hover:no-underline">
+                <div className="flex items-center space-x-2">
+                  <Euro className="size-4 text-green-600" />
+                  <span className="font-medium">Estimation des coûts</span>
+                  <span className="text-sm text-green-600 font-medium">
+                    {bomDisplay.estimatedCost.avg}
+                  </span>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="p-2 space-y-3">
+                  {/* Résumé des coûts */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div className="bg-green-50 p-3 rounded-lg border border-green-200">
+                      <div className="flex items-center space-x-2 mb-1">
+                        <TrendingUp className="size-4 text-green-600" />
+                        <span className="text-sm font-medium text-green-800">Minimum</span>
+                      </div>
+                      <div className="text-lg font-bold text-green-900">
+                        {bomDisplay.estimatedCost.min}
+                      </div>
+                    </div>
+                    <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                      <div className="flex items-center space-x-2 mb-1">
+                        <Euro className="size-4 text-blue-600" />
+                        <span className="text-sm font-medium text-blue-800">Moyen</span>
+                      </div>
+                      <div className="text-lg font-bold text-blue-900">
+                        {bomDisplay.estimatedCost.avg}
+                      </div>
+                    </div>
+                    <div className="bg-orange-50 p-3 rounded-lg border border-orange-200">
+                      <div className="flex items-center space-x-2 mb-1">
+                        <TrendingUp className="size-4 text-orange-600" />
+                        <span className="text-sm font-medium text-orange-800">Maximum</span>
+                      </div>
+                      <div className="text-lg font-bold text-orange-900">
+                        {bomDisplay.estimatedCost.max}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Détails par couleur avec prix */}
+                  <div className="space-y-2">
+                    <h5 className="text-sm font-medium text-gray-700">Détail par couleur</h5>
+                    <div className="max-h-48 overflow-y-auto space-y-1">
+                      {bomDisplay.items
+                        .filter((item) => item.unitPrice !== 'N/A')
+                        .map((item, index: number) => (
+                          <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded text-sm">
+                            <div className="flex items-center space-x-2">
+                              <div 
+                                className="w-4 h-4 rounded border border-gray-300"
+                                style={{ backgroundColor: item.colorHex }}
+                              />
+                              <span className="font-medium">{item.colorName}</span>
+                              <span className="text-gray-500">×{item.quantity}</span>
+                            </div>
+                            <div className="text-right">
+                              <div className="font-medium">{item.totalPrice}</div>
+                              <div className="text-xs text-gray-500">{item.unitPrice}/pièce</div>
+                            </div>
+                          </div>
+                        ))
+                      }
+                    </div>
+                    
+                    {isGeneratingBom && (
+                      <div className="text-center py-4">
+                        <div className="text-sm text-gray-500">Récupération des prix en cours...</div>
+                      </div>
+                    )}
+                    
+                    <div className="text-xs text-gray-500 mt-2">
+                      💡 Estimation des prix temporairement désactivée. Les prix peuvent varier selon la disponibilité et la condition des pièces.
+                    </div>
+                  </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          )}
           {/* Section Pièces 1x1 par couleur */}
           <AccordionItem value="plates-1x1">
             <AccordionTrigger className="text-left hover:no-underline">
@@ -79,8 +235,8 @@ export const PiecesBreakdownCard: React.FC<PiecesBreakdownCardProps> = ({
                     const legoColorB = config.colorPalette.find(
                       (c) => c.hex === colorHexB
                     );
-                    const idA = legoColorA?.id || 999999;
-                    const idB = legoColorB?.id || 999999;
+                    const idA = legoColorA?.id ?? 999999;
+                    const idB = legoColorB?.id ?? 999999;
                     return idA - idB;
                   })
                   .map(([colorInfo, count]) => {
@@ -109,7 +265,7 @@ export const PiecesBreakdownCard: React.FC<PiecesBreakdownCardProps> = ({
                               {colorName}
                             </div>
                             <div className="text-xs text-gray-500">
-                              #3024 | {legoColor?.id || "N/A"}
+                              #3024 | {legoColor?.id !== undefined ? legoColor.id : "N/A"}
                             </div>
                           </div>
                         </div>
@@ -120,6 +276,17 @@ export const PiecesBreakdownCard: React.FC<PiecesBreakdownCardProps> = ({
                           <div className="text-xs text-gray-500">
                             pièce{count > 1 ? "s" : ""}
                           </div>
+                          {/* Afficher le prix si disponible dans la BOM */}
+                          {bomDisplay?.items && (() => {
+                            const bomItem = bomDisplay.items.find((item) => 
+                              item.colorHex === colorHex && item.unitPrice !== 'N/A'
+                            );
+                            return bomItem ? (
+                              <div className="text-xs text-green-600 font-medium">
+                                {bomItem.totalPrice}
+                              </div>
+                            ) : null;
+                          })()}
                         </div>
                       </div>
                     );
@@ -205,26 +372,16 @@ export const PiecesBreakdownCard: React.FC<PiecesBreakdownCardProps> = ({
                         <div className="flex items-center space-x-2">
                           {/* Représentation visuelle spécifique */}
                           {elementName.includes("Connecteur") ? (
-                            /* Connecteur Technic - Composant réutilisable */
+                            /* Connecteur Technic - Couleur depuis CSV */
                             <TechnicConnector
-                              color={{
-                                id: 6279875,
-                                name: "Black",
-                                hex: "#1b2a34",
-                                rgb: [27, 42, 52],
-                              }}
+                              color={getDefaultTechnicColor()}
                               size="md"
                               showTooltip={false}
                             />
                           ) : (
-                            /* Plaque de base Technic - Composant réutilisable */
+                            /* Plaque de base Technic - Couleur depuis CSV */
                             <TechnicPlate16x16
-                              color={{
-                                id: 6302092,
-                                name: "Black",
-                                hex: "#1b2a34",
-                                rgb: [27, 42, 52],
-                              }}
+                              color={getDefaultTechnicColor()}
                               size="md"
                               showTooltip={false}
                             />

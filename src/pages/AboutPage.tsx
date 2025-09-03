@@ -171,7 +171,7 @@ export function AboutPage() {
                 Où puis-je acheter les pièces LEGO nécessaires ?
               </AccordionTrigger>
               <AccordionContent>
-                Vous pouvez acheter les pièces sur le service "Pick-a-Brick" du site officiel LEGO, sur BrickLink (marketplace de pièces LEGO d'occasion), ou dans les magasins LEGO physiques. La liste générée par Cubic Art inclut les références exactes pour faciliter vos achats.
+                Vous pouvez acheter les pièces sur le service "Pick-a-Brick" du site officiel LEGO, sur des marketplaces de pièces LEGO comme BrickLink, ou dans les magasins LEGO physiques. La liste générée par Cubic Art inclut les références exactes (element_id pour Pick-a-Brick, part_num + color_id pour les autres) pour faciliter vos achats.
               </AccordionContent>
             </AccordionItem>
             

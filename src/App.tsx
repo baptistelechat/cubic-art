@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { useEffect } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { ScrollToTop } from '@/components/ScrollToTop';
@@ -7,9 +8,20 @@ import { GeneratorPage } from '@/pages/GeneratorPage';
 import { GalleryPage } from '@/pages/GalleryPage';
 import { AboutPage } from '@/pages/AboutPage';
 import { ContactPage } from '@/pages/ContactPage';
+import { useColorStore } from '@/hooks/useColorStore';
 import './App.css';
 
 function App() {
+  const preloadCommonPalettes = useColorStore(state => state.preloadCommonPalettes);
+
+  // Pré-charger les palettes au démarrage de l'app
+  useEffect(() => {
+    console.log('🚀 Démarrage de l\'application - Pré-chargement des palettes...');
+    preloadCommonPalettes().catch(error => {
+      console.error('❌ Erreur lors du pré-chargement des palettes:', error);
+    });
+  }, [preloadCommonPalettes]);
+
   return (
     <Router>
       <ScrollToTop />

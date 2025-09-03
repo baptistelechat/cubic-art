@@ -1,12 +1,17 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import type { MosaicResult } from "@/types";
-import { Download } from "lucide-react";
-import React from "react";
+import {
+  generateBOM,
+  generateBrickLinkCSV,
+  generatePickABrickCSV,
+} from "@/services/bomGenerator";
+import type { BillOfMaterials, MosaicConfig, MosaicResult } from "@/types";
+import { Download, Package, ToyBrick } from "lucide-react";
+import React, { useCallback, useEffect, useState } from "react";
 
 interface DownloadCardProps {
   mosaicResult: MosaicResult | null;
   mosaicCanvas: HTMLCanvasElement | null;
-  config: any;
+  config: MosaicConfig;
 }
 
 // Fonction pour générer le SVG
@@ -34,6 +39,29 @@ export const DownloadCard: React.FC<DownloadCardProps> = ({
   mosaicCanvas,
   config,
 }) => {
+  const [bom, setBom] = useState<BillOfMaterials | null>(null);
+  const [isGeneratingBom, setIsGeneratingBom] = useState(false);
+
+  const generateBOMAsync = useCallback(async () => {
+    if (!mosaicResult) return;
+
+    setIsGeneratingBom(true);
+    try {
+      const generatedBom = await generateBOM(mosaicResult, true);
+      setBom(generatedBom);
+    } catch (error) {
+      console.error("Erreur lors de la génération de la BOM:", error);
+    } finally {
+      setIsGeneratingBom(false);
+    }
+  }, [mosaicResult]);
+
+  // Générer la BOM automatiquement quand la mosaïque change
+  useEffect(() => {
+    if (mosaicResult) {
+      generateBOMAsync();
+    }
+  }, [mosaicResult, generateBOMAsync]);
   const downloadPNG = () => {
     if (!mosaicCanvas) return;
 
@@ -95,8 +123,8 @@ export const DownloadCard: React.FC<DownloadCardProps> = ({
       .sort(([colorInfoA], [colorInfoB]) => {
         const colorHexA = colorInfoA.match(/\(([^)]+)\)/)?.[1] || "#000000";
         const colorHexB = colorInfoB.match(/\(([^)]+)\)/)?.[1] || "#000000";
-        const legoColorA = config.colorPalette.find((c: any) => c.hex === colorHexA);
-        const legoColorB = config.colorPalette.find((c: any) => c.hex === colorHexB);
+        const legoColorA = config.colorPalette.find((c) => c.hex === colorHexA);
+        const legoColorB = config.colorPalette.find((c) => c.hex === colorHexB);
         const idA = legoColorA?.id || 999999;
         const idB = legoColorB?.id || 999999;
         return idA - idB;
@@ -104,7 +132,7 @@ export const DownloadCard: React.FC<DownloadCardProps> = ({
       .forEach(([colorInfo, count]) => {
         const colorName = colorInfo.split(" (")[0];
         const colorHex = colorInfo.match(/\(([^)]+)\)/)?.[1] || "#000000";
-        const legoColor = config.colorPalette.find((c: any) => c.hex === colorHex);
+        const legoColor = config.colorPalette.find((c) => c.hex === colorHex);
         const legoId = legoColor?.id || "N/A";
 
         csvContent += `"${colorName}","${legoId}","${colorHex}",${count}\n`;
@@ -120,6 +148,30 @@ export const DownloadCard: React.FC<DownloadCardProps> = ({
     URL.revokeObjectURL(url);
   };
 
+  const downloadPickABrickCSV = () => {
+    if (!bom) return;
+
+    const csvContent = generatePickABrickCSV(bom);
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.download = `pick-a-brick-${Date.now()}.csv`;
+    link.href = url;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const downloadBrickLinkCSV = () => {
+    if (!bom) return;
+
+    const csvContent = generateBrickLinkCSV(bom);
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `bricklink-wanted-list-${Date.now()}.csv`;
+    link.click();
+  };
+
   if (!mosaicResult || !mosaicCanvas) {
     return null;
   }
@@ -133,35 +185,70 @@ export const DownloadCard: React.FC<DownloadCardProps> = ({
         </h3>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          <button
-            onClick={downloadPNG}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
-          >
-            <Download size={20} />
-            <span>PNG</span>
-          </button>
-          <button
-            onClick={downloadSVG}
-            className="bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
-          >
-            <Download size={20} />
-            <span>SVG</span>
-          </button>
-          <button
-            onClick={downloadPiecesList}
-            className="bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
-          >
-            <Download size={20} />
-            <span>CSV</span>
-          </button>
-          <button
-            onClick={downloadJSON}
-            className="bg-orange-600 hover:bg-orange-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
-          >
-            <Download size={20} />
-            <span>JSON</span>
-          </button>
+        <div className="space-y-4 text-left">
+          {/* Section Images */}
+          <div>
+            <h4 className="text-sm font-medium text-gray-700 mb-2">Images</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              <button
+                onClick={downloadPNG}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
+              >
+                <Download size={20} />
+                <span>PNG</span>
+              </button>
+              <button
+                onClick={downloadSVG}
+                className="bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
+              >
+                <Download size={20} />
+                <span>SVG</span>
+              </button>
+              <button
+                onClick={downloadPiecesList}
+                className="bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
+              >
+                <Download size={20} />
+                <span>CSV</span>
+              </button>
+              <button
+                onClick={downloadJSON}
+                className="bg-orange-600 hover:bg-orange-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
+              >
+                <Download size={20} />
+                <span>JSON</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Section Commande de pièces */}
+          <div>
+            <h4 className="text-sm font-medium text-gray-700 mb-2">
+              Commande de pièces LEGO
+            </h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <button
+                onClick={downloadPickABrickCSV}
+                disabled={!bom || isGeneratingBom}
+                className="bg-red-600 hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
+                title="Télécharger le CSV pour Pick a Brick (LEGO.com)"
+              >
+                <ToyBrick size={20} />
+                <span>
+                  {isGeneratingBom ? "Génération..." : "Pick a Brick"}
+                </span>
+              </button>
+              <button
+                onClick={downloadBrickLinkCSV}
+                disabled={!bom || isGeneratingBom}
+                className="bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
+                title="Télécharger le CSV pour BrickLink Wanted List"
+              >
+                <Package size={20} />
+                <span>{isGeneratingBom ? "Génération..." : "BrickLink"}</span>
+              </button>
+            </div>
+          </div>
         </div>
       </CardContent>
     </Card>
