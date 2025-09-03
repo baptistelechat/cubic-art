@@ -1,8 +1,9 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   generateBOM,
-  generateBrickLinkCSV,
-  generatePickABrickCSV,
+  generateBricklinkXML,
+  generatePABCSV,
+  generatePABJSON,
 } from "@/services/bomGenerator";
 import type { BillOfMaterials, MosaicConfig, MosaicResult } from "@/types";
 import { Download, Package, ToyBrick } from "lucide-react";
@@ -148,28 +149,49 @@ export const DownloadCard: React.FC<DownloadCardProps> = ({
     URL.revokeObjectURL(url);
   };
 
-  const downloadPickABrickCSV = () => {
+  const downloadBricklinkXML = () => {
     if (!bom) return;
 
-    const csvContent = generatePickABrickCSV(bom);
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const xmlContent = generateBricklinkXML(bom);
+    const blob = new Blob([xmlContent], { type: "application/xml" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.download = `pick-a-brick-${Date.now()}.csv`;
+    link.download = `bricklink-inventory-${Date.now()}.xml`;
     link.href = url;
     link.click();
     URL.revokeObjectURL(url);
   };
 
-  const downloadBrickLinkCSV = () => {
-    if (!bom) return;
+  const downloadPABCSV = () => {
+    if (!mosaicResult || !mosaicResult.piecesList) return;
 
-    const csvContent = generateBrickLinkCSV(bom);
+    const csvContent = generatePABCSV(
+      mosaicResult.piecesList,
+      config.colorPalette
+    );
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = `bricklink-wanted-list-${Date.now()}.csv`;
+    link.download = `pab-list-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.href = url;
     link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const downloadPABJSON = () => {
+    if (!mosaicResult || !mosaicResult.piecesList) return;
+
+    const jsonContent = generatePABJSON(
+      mosaicResult.piecesList,
+      config.colorPalette
+    );
+    const blob = new Blob([jsonContent], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.download = `pab-list-${new Date().toISOString().slice(0, 10)}.json`;
+    link.href = url;
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
   if (!mosaicResult || !mosaicCanvas) {
@@ -185,11 +207,11 @@ export const DownloadCard: React.FC<DownloadCardProps> = ({
         </h3>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4 text-left">
-          {/* Section Images */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 text-left">
+          {/* Colonne gauche - Section Images */}
           <div>
-            <h4 className="text-sm font-medium text-gray-700 mb-2">Images</h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <h4 className="text-sm font-medium text-gray-700 mb-3">Images</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <button
                 onClick={downloadPNG}
                 className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
@@ -221,31 +243,47 @@ export const DownloadCard: React.FC<DownloadCardProps> = ({
             </div>
           </div>
 
-          {/* Section Commande de pièces */}
+          {/* Colonne droite - Section Commande de pièces */}
           <div>
-            <h4 className="text-sm font-medium text-gray-700 mb-2">
-              Commande de pièces LEGO
+            <h4 className="text-sm font-medium text-gray-700 mb-3">
+              Commande de pièces
             </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="flex flex-col gap-3">
               <button
-                onClick={downloadPickABrickCSV}
-                disabled={!bom || isGeneratingBom}
-                className="bg-red-600 hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
-                title="Télécharger le CSV pour Pick a Brick (LEGO.com)"
+                onClick={downloadPABCSV}
+                disabled={!mosaicResult}
+                className="bg-red-600 hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2 relative w-full"
+                title="Format CSV pour Pick-A-Brick"
               >
                 <ToyBrick size={20} />
-                <span>
-                  {isGeneratingBom ? "Génération..." : "Pick a Brick"}
+                {isGeneratingBom ? "Génération..." : "Pick a Brick"}
+                <span className="absolute bottom-1 right-2 text-xs">
+                  CSV
                 </span>
               </button>
               <button
-                onClick={downloadBrickLinkCSV}
+                onClick={downloadPABJSON}
+                disabled={!mosaicResult}
+                className="bg-red-700 hover:bg-red-800 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2 relative w-full"
+                title="Format JSON pour Pick-A-Brick"
+              >
+                <ToyBrick size={20} />
+                {isGeneratingBom ? "Génération..." : "Pick a Brick"}
+                <span className="absolute bottom-1 right-2 text-xs">
+                  JSON
+                </span>
+              </button>
+              <button
+                onClick={downloadBricklinkXML}
                 disabled={!bom || isGeneratingBom}
-                className="bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
-                title="Télécharger le CSV pour BrickLink Wanted List"
+                className="w-full bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2 relative"
+                title="Télécharger le XML pour BrickLink (seul format supporté)"
               >
                 <Package size={20} />
                 <span>{isGeneratingBom ? "Génération..." : "BrickLink"}</span>
+                <span className="absolute bottom-1 right-2 text-xs">
+                  XML
+                </span>
               </button>
             </div>
           </div>

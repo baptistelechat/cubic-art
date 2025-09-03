@@ -157,19 +157,124 @@ export const generatePickABrickCSV = (bom: BillOfMaterials): string => {
   return csvContent;
 };
 
+
+
 /**
- * Génère un CSV BrickLink à partir d'une BOM
+ * Génère un XML BrickLink à partir d'une BOM
  * @param bom Bill of Materials
- * @returns Contenu CSV pour BrickLink Wanted List
+ * @returns Contenu XML pour BrickLink Wanted List
  */
-export const generateBrickLinkCSV = (bom: BillOfMaterials): string => {
-  let csvContent = "ITEMTYPE,ITEMID,COLOR,MINQTY\n";
+export const generateBricklinkXML = (bom: BillOfMaterials): string => {
+  let xml = '<INVENTORY>';
 
   bom.items.forEach((item) => {
-    csvContent += `P,${item.part_num},${item.color_id},${item.quantity}\n`;
+    xml += '<ITEM>';
+    xml += '<ITEMTYPE>P</ITEMTYPE>';
+    xml += `<ITEMID>${item.part_num}</ITEMID>`;
+    xml += `<COLOR>${item.color_id}</COLOR>`;
+    xml += `<MINQTY>${item.quantity}</MINQTY>`;
+    xml += '</ITEM>';
   });
 
-  return csvContent;
+  xml += '</INVENTORY>';
+  return xml;
+};
+
+/**
+ * Génère un XML BrickLink à partir d'une liste de pièces et palette de couleurs
+ * @param piecesList Liste des pièces avec quantités
+ * @param colorPalette Palette de couleurs LEGO
+ * @returns Contenu XML pour BrickLink Wanted List
+ */
+export const generateBricklinkXMLFromPieces = (
+  piecesList: Record<string, number>,
+  colorPalette: LegoColor[]
+): string => {
+  let xml = '<INVENTORY>';
+
+  Object.entries(piecesList)
+    .filter(([key]) => 
+      !key.includes("Plaque de base Technic") && 
+      !key.includes("Connecteur")
+    )
+    .forEach(([colorInfo, quantity]) => {
+      const colorHex = colorInfo.match(/\(([^)]+)\)/)?.[1] || "#000000";
+      const legoColor = colorPalette.find(c => c.hex === colorHex);
+      
+      if (legoColor) {
+        xml += '<ITEM>';
+        xml += '<ITEMTYPE>P</ITEMTYPE>';
+        xml += '<ITEMID>3024</ITEMID>'; // Pièce 1x1
+        xml += `<COLOR>${legoColor.id}</COLOR>`;
+        xml += `<MINQTY>${quantity}</MINQTY>`;
+        xml += '</ITEM>';
+      }
+    });
+
+  xml += '</INVENTORY>';
+  return xml;
+};
+
+/**
+ * Génère un CSV PAB (Pick-A-Brick) à partir d'une liste de pièces et palette de couleurs
+ * @param piecesList Liste des pièces avec quantités
+ * @param colorPalette Palette de couleurs LEGO
+ * @returns Contenu CSV pour PAB au format elementId,quantity
+ */
+export const generatePABCSV = (
+  piecesList: Record<string, number>,
+  colorPalette: LegoColor[]
+): string => {
+  let csv = "elementId,quantity\n";
+
+  Object.entries(piecesList)
+    .filter(([key]) => 
+      !key.includes("Plaque de base Technic") && 
+      !key.includes("Connecteur")
+    )
+    .forEach(([colorInfo, quantity]) => {
+      const colorHex = colorInfo.match(/\(([^)]+)\)/)?.[1] || "#000000";
+      const legoColor = colorPalette.find(c => c.hex === colorHex);
+      
+      if (legoColor) {
+        // Format: elementId = color_id + part_id (ex: 300321 = color 3 + part 00321)
+        const elementId = `${legoColor.id.toString().padStart(2, '0')}0321`; // 0321 pour pièce 1x1
+        csv += `${elementId},${quantity}\n`;
+      }
+    });
+
+  return csv;
+};
+
+/**
+ * Génère un JSON PAB (Pick-A-Brick) à partir d'une liste de pièces et palette de couleurs
+ * @param piecesList Liste des pièces avec quantités
+ * @param colorPalette Palette de couleurs LEGO
+ * @returns Contenu JSON pour PAB au format [{elementId, quantity}]
+ */
+export const generatePABJSON = (
+  piecesList: Record<string, number>,
+  colorPalette: LegoColor[]
+): string => {
+  const items: Array<{elementId: string, quantity: number}> = [];
+
+  Object.entries(piecesList)
+    .filter(([key]) => 
+      !key.includes("Plaque de base Technic") && 
+      !key.includes("Connecteur")
+    )
+    .forEach(([colorInfo, quantity]) => {
+      const colorHex = colorInfo.match(/\(([^)]+)\)/)?.[1] || "#000000";
+      const legoColor = colorPalette.find(c => c.hex === colorHex);
+      
+      if (legoColor) {
+        // Format: elementId = color_id + part_id (ex: 300321 = color 3 + part 00321)
+        const elementId = `${legoColor.id.toString().padStart(2, '0')}0321`; // 0321 pour pièce 1x1
+        items.push({ elementId, quantity });
+      }
+    });
+
+  return JSON.stringify(items, null, 2);
 };
 
 /**

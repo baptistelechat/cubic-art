@@ -4,8 +4,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import type { LegoColor } from "@/types";
 import { createTechnicPlateColor } from "@/utils/defaultConfig";
+import type { LegoColor } from "@/types";
 import { useEffect, useState } from "react";
 
 interface TechnicPlate16x16Props {
@@ -35,7 +35,7 @@ const gridClasses = {
 
 const studCountBySize = {
   sm: 9, // 3x3
-  md: 64, // 7x7
+  md: 64, // 8x8
   lg: 100, // 10x10
 };
 
@@ -47,7 +47,7 @@ export const TechnicPlate16x16 = ({
 }: TechnicPlate16x16Props) => {
   // État pour la couleur de la plaque Technic (chargée depuis les CSV)
   const [plateColor, setPlateColor] = useState<LegoColor>(color);
-
+  
   // Charger la couleur appropriée depuis les CSV
   useEffect(() => {
     const loadPlateColor = async () => {
@@ -55,15 +55,12 @@ export const TechnicPlate16x16 = ({
         const technicColor = await createTechnicPlateColor(color);
         setPlateColor(technicColor);
       } catch (error) {
-        console.error(
-          "Erreur lors du chargement de la couleur Technic:",
-          error
-        );
+        console.error("Erreur lors du chargement de la couleur Technic:", error);
         // En cas d'erreur, utiliser la couleur d'origine
         setPlateColor(color);
       }
     };
-
+    
     loadPlateColor();
   }, [color]);
   const plateElement = (
@@ -107,9 +104,12 @@ export const TechnicPlate16x16 = ({
         <Tooltip>
           <TooltipTrigger asChild>{plateElement}</TooltipTrigger>
           <TooltipContent>
-            <div className="text-center flex gap-1 items-end">
+            <div className="text-center">
               <div className="font-medium">{plateColor.name}</div>
               <div className="text-xs opacity-70">#{plateColor.id}</div>
+              {plateColor.id !== color.id && (
+                <div className="text-xs opacity-50">Plaque Technic 16x16</div>
+              )}
             </div>
           </TooltipContent>
         </Tooltip>
@@ -126,41 +126,36 @@ function adjustBrightness(hex: string, percent: number): string {
   const num = parseInt(hex.replace("#", ""), 16);
   const amt = Math.round(2.55 * percent);
   const R = (num >> 16) + amt;
-  const G = ((num >> 8) & 0x00ff) + amt;
-  const B = (num & 0x0000ff) + amt;
-
+  const G = (num >> 8 & 0x00FF) + amt;
+  const B = (num & 0x0000FF) + amt;
+  
   // S'assurer que les valeurs restent dans la plage 0-255
   const clampedR = Math.max(0, Math.min(255, R));
   const clampedG = Math.max(0, Math.min(255, G));
   const clampedB = Math.max(0, Math.min(255, B));
-
-  return (
-    "#" +
-    ((clampedR << 16) | (clampedG << 8) | clampedB)
-      .toString(16)
-      .padStart(6, "0")
-  );
+  
+  return "#" + (clampedR << 16 | clampedG << 8 | clampedB).toString(16).padStart(6, '0');
 }
 
 // Fonction pour calculer la luminosité relative d'une couleur (0-1)
 function getLuminance(hex: string): number {
   const num = parseInt(hex.replace("#", ""), 16);
   const r = (num >> 16) / 255;
-  const g = ((num >> 8) & 0x00ff) / 255;
-  const b = (num & 0x0000ff) / 255;
-
+  const g = (num >> 8 & 0x00FF) / 255;
+  const b = (num & 0x0000FF) / 255;
+  
   // Formule de luminance relative W3C
   const sR = r <= 0.03928 ? r / 12.92 : Math.pow((r + 0.055) / 1.055, 2.4);
   const sG = g <= 0.03928 ? g / 12.92 : Math.pow((g + 0.055) / 1.055, 2.4);
   const sB = b <= 0.03928 ? b / 12.92 : Math.pow((b + 0.055) / 1.055, 2.4);
-
+  
   return 0.2126 * sR + 0.7152 * sG + 0.0722 * sB;
 }
 
 // Fonction pour obtenir la couleur des studs adaptée à la luminosité de base
 function getStudColor(baseColor: string): string {
   const luminance = getLuminance(baseColor);
-
+  
   // Si la couleur est très sombre (luminance < 0.1), éclaircir les studs
   if (luminance < 0.1) {
     return adjustBrightness(baseColor, 60); // Éclaircir de 60%

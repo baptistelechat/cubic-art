@@ -6,12 +6,15 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useColorStore } from "@/hooks/useColorStore";
 import { useStore } from "@/hooks/useStore";
+import {
+  getTechnicConnectorColors,
+  getTechnicPlateColors,
+} from "@/services/csvDataService";
 import type { LegoColor, MosaicResult } from "@/types";
 import {
   generateMosaicPreview,
   processImageToMosaic,
 } from "@/utils/imageProcessor";
-import { getTechnicPlateColors, getTechnicConnectorColors } from "@/services/csvDataService";
 import { Palette } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { ConfigurationCard } from "./components/ConfigurationCard";
@@ -101,7 +104,10 @@ export function GeneratorPage() {
         const colors = await getTechnicConnectorColors();
         setConnectorColors(colors);
       } catch (error) {
-        console.error("Erreur lors du chargement des couleurs des connecteurs:", error);
+        console.error(
+          "Erreur lors du chargement des couleurs des connecteurs:",
+          error
+        );
       }
     };
 
