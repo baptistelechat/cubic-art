@@ -35,13 +35,11 @@ export const useColorStore = create<ColorStore>((set, get) => ({
     // Vérifier si déjà en cache
     const cached = state.palettes.get(partNum);
     if (cached) {
-
       return cached;
     }
 
     // Vérifier si déjà en cours de chargement
     if (state.loadingParts.has(partNum)) {
-
       // Attendre que le chargement se termine
       return new Promise((resolve) => {
         const checkInterval = setInterval(() => {
@@ -63,8 +61,6 @@ export const useColorStore = create<ColorStore>((set, get) => ({
         error: null
       }));
 
-  
-      
       // Charger depuis les CSV locaux (pas d'appel API)
       const palette = await getLocalColorPalette(partNum);
       
@@ -83,7 +79,6 @@ export const useColorStore = create<ColorStore>((set, get) => ({
         };
       });
 
-  
       return palette;
       
     } catch (error) {
@@ -131,7 +126,6 @@ export const useColorStore = create<ColorStore>((set, get) => ({
 
   // Vider le cache
   clearCache: () => {
-  
     set({
       palettes: new Map(),
       isLoading: false,

@@ -15,6 +15,8 @@ export interface LegoColor {
   name: string;
   hex: string;
   rgb: [number, number, number];
+  y1?: number; // Première année de production
+  y2?: number; // Dernière année de production
 }
 
 // Configuration de la mosaïque

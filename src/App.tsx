@@ -9,17 +9,23 @@ import { GalleryPage } from '@/pages/GalleryPage';
 import { AboutPage } from '@/pages/AboutPage';
 import { ContactPage } from '@/pages/ContactPage';
 import { useColorStore } from '@/hooks/useColorStore';
+import { clearCSVCache } from '@/services/csvDataService';
 import './App.css';
 
 function App() {
   const preloadCommonPalettes = useColorStore(state => state.preloadCommonPalettes);
+  const clearCache = useColorStore(state => state.clearCache);
 
-  // Pré-charger les palettes au démarrage de l'app
+  // Vider tous les caches et pré-charger les palettes au démarrage de l'app
   useEffect(() => {
+    // Forcer le rechargement complet des données
+    clearCSVCache();
+    clearCache();
+    
     preloadCommonPalettes().catch(error => {
       console.error('❌ Erreur lors du pré-chargement des palettes:', error);
     });
-  }, [preloadCommonPalettes]);
+  }, [preloadCommonPalettes, clearCache]);
 
   return (
     <Router>

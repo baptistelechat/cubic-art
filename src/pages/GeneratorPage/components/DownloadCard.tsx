@@ -162,10 +162,10 @@ export const DownloadCard: React.FC<DownloadCardProps> = ({
     URL.revokeObjectURL(url);
   };
 
-  const downloadPABCSV = () => {
+  const downloadPABCSV = async () => {
     if (!mosaicResult || !mosaicResult.piecesList) return;
 
-    const csvContent = generatePABCSV(
+    const csvContent = await generatePABCSV(
       mosaicResult.piecesList,
       config.colorPalette
     );
@@ -178,10 +178,10 @@ export const DownloadCard: React.FC<DownloadCardProps> = ({
     URL.revokeObjectURL(url);
   };
 
-  const downloadPABJSON = () => {
+  const downloadPABJSON = async () => {
     if (!mosaicResult || !mosaicResult.piecesList) return;
 
-    const jsonContent = generatePABJSON(
+    const jsonContent = await generatePABJSON(
       mosaicResult.piecesList,
       config.colorPalette
     );

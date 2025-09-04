@@ -1,49 +1,6 @@
 import type { LegoColor } from "@/types";
 
 /**
- * Service pour gérer les palettes de couleurs LEGO
- */
-
-/**
- * Récupère la palette de couleurs par défaut
- * @returns Liste des couleurs LEGO les plus communes
- */
-export const getDefaultColorPalette = (): LegoColor[] => {
-  const allColors = [
-    { id: 1, name: "White", hex: "#FFFFFF", rgb: [255, 255, 255] },
-    { id: 5, name: "Red", hex: "#C91A09", rgb: [201, 26, 9] },
-    { id: 7, name: "Blue", hex: "#0055BF", rgb: [0, 85, 191] },
-    { id: 6, name: "Green", hex: "#237841", rgb: [35, 120, 65] },
-    { id: 3, name: "Yellow", hex: "#F2CD37", rgb: [242, 205, 55] },
-    { id: 4, name: "Orange", hex: "#FC7C02", rgb: [252, 124, 2] },
-    { id: 11, name: "Black", hex: "#05131D", rgb: [5, 19, 29] },
-    { id: 85, name: "Dark Bluish Gray", hex: "#6C6E68", rgb: [108, 110, 104] },
-    { id: 86, name: "Light Bluish Gray", hex: "#9BA19D", rgb: [155, 161, 157] },
-    { id: 88, name: "Reddish Brown", hex: "#582A12", rgb: [88, 42, 18] },
-    { id: 2, name: "Tan", hex: "#E4CD9E", rgb: [228, 205, 158] },
-    { id: 42, name: "Medium Blue", hex: "#5A93DB", rgb: [90, 147, 219] },
-    { id: 63, name: "Dark Blue", hex: "#143044", rgb: [20, 48, 68] },
-    { id: 34, name: "Lime", hex: "#A3C312", rgb: [163, 195, 18] },
-    { id: 36, name: "Bright Green", hex: "#10CB31", rgb: [16, 203, 49] },
-    { id: 80, name: "Dark Green", hex: "#184632", rgb: [24, 70, 50] },
-  ];
-
-  return allColors
-    .filter((color) => !color.name.startsWith("Trans-"))
-    .map((color) => ({
-      ...color,
-      rgb: [color.rgb[0], color.rgb[1], color.rgb[2]] as [
-        number,
-        number,
-        number
-      ],
-    }))
-    .sort((a, b) => a.id - b.id);
-};
-
-
-
-/**
  * Trouve la couleur la plus proche dans une palette donnée
  * @param targetColor Couleur cible (RGB)
  * @param palette Palette de couleurs disponibles

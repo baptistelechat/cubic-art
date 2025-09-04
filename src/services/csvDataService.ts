@@ -18,39 +18,69 @@ let colorsCache: Map<number, LegoColor> | null = null;
 let inventoryPartsCache: Map<string, CSVInventoryPart[]> | null = null;
 let elementsCache: Map<string, string> | null = null; // (part_num-color_id) -> element_id
 
+// Fonction pour vider le cache des elements
+export const clearElementsCache = (): void => {
+  elementsCache = null;
+};
+
+/**
+ * Vide TOUS les caches CSV pour forcer un rechargement complet
+ */
+export const clearAllCaches = (): void => {
+  colorsCache = null;
+  inventoryPartsCache = null;
+  elementsCache = null;
+};
+
 /**
  * Charge et parse les fichiers colors.csv (principal + splittés)
  */
 export const loadColors = async (): Promise<Map<number, LegoColor>> => {
-  if (colorsCache && colorsCache.size > 0) {
+  if (colorsCache) {
     return colorsCache;
   }
 
   try {
     const rows = await loadProjectCSVFiles("colors.csv");
-    const headers = rows[0];
+    const headers = rows[0].map((h) => h.trim());
     const idIndex = headers.indexOf("id");
     const nameIndex = headers.indexOf("name");
     const rgbIndex = headers.indexOf("rgb");
     const isTransIndex = headers.indexOf("is_trans");
+    const y1Index = headers.indexOf("y1");
+    const y2Index = headers.indexOf("y2");
 
     colorsCache = new Map();
 
     for (let i = 1; i < rows.length; i++) {
-      const row = rows[i];
+      const row = rows[i].map((cell) => cell.trim()); // Trim chaque cellule
       if (row.length > Math.max(idIndex, nameIndex, rgbIndex, isTransIndex)) {
         const colorId = parseInt(row[idIndex], 10);
+        const colorName = row[nameIndex];
         const hex = row[rgbIndex].startsWith("#")
           ? row[rgbIndex]
           : `#${row[rgbIndex]}`;
         const rgbArray = hexToRgbArray(row[rgbIndex]);
 
+        // Parsing correct pour y1 et y2
+        const y1 =
+          y1Index >= 0 && row[y1Index] && row[y1Index] !== ""
+            ? parseInt(row[y1Index], 10)
+            : undefined;
+        const y2 =
+          y2Index >= 0 && row[y2Index] && row[y2Index] !== ""
+            ? parseInt(row[y2Index], 10)
+            : undefined;
+
         const color: LegoColor = {
           id: colorId,
-          name: row[nameIndex],
+          name: colorName,
           hex: hex,
           rgb: rgbArray,
+          y1: y1,
+          y2: y2,
         };
+
         colorsCache.set(colorId, color);
       }
     }
@@ -161,7 +191,7 @@ export const loadInventoryParts = async (): Promise<
 };
 
 /**
- * Charge et parse les fichiers elements.csv (principal + splittés)
+ * Charge et parse les fichiers elements.csv avec vérification croisée inventory_parts
  */
 export const loadElements = async (): Promise<Map<string, string>> => {
   if (elementsCache) {
@@ -169,20 +199,122 @@ export const loadElements = async (): Promise<Map<string, string>> => {
   }
 
   try {
-    const rows = await loadProjectCSVFiles("elements.csv");
-    const headers = rows[0];
-    const elementIdIndex = headers.indexOf("element_id");
-    const partNumIndex = headers.indexOf("part_num");
-    const colorIdIndex = headers.indexOf("color_id");
+    // Charger elements.csv et les deux fichiers inventory_parts fusionnés
+    const [elementsRows, inventoryPartsRows] = await Promise.all([
+      loadProjectCSVFiles("elements.csv"),
+      loadInventoryPartsSplit(),
+    ]);
+
+    // Nettoyer les en-têtes en supprimant les caractères de fin de ligne (\r, \n)
+    const elementsHeaders = elementsRows[0].map((header) => header.trim());
+    const elementIdIndex = elementsHeaders.indexOf("element_id");
+    const partNumIndex = elementsHeaders.indexOf("part_num");
+    const colorIdIndex = elementsHeaders.indexOf("color_id");
+    const designIdIndex = elementsHeaders.indexOf("design_id");
+
+    const inventoryHeaders = inventoryPartsRows[0].map((header) =>
+      header.trim()
+    );
+    const invPartNumIndex = inventoryHeaders.indexOf("part_num");
+    const invColorIdIndex = inventoryHeaders.indexOf("color_id");
+    const invImgUrlIndex = inventoryHeaders.indexOf("img_url");
+
+    // Extraire les element_ids réellement utilisés depuis les fichiers inventory_parts (1 et 2)
+    const usedElementIds = new Set<string>();
+    const inventoryElementIds = new Map<string, string>(); // key -> element_id utilisé
+
+    for (let i = 1; i < inventoryPartsRows.length; i++) {
+      const row = inventoryPartsRows[i];
+      if (
+        row.length > Math.max(invPartNumIndex, invColorIdIndex, invImgUrlIndex)
+      ) {
+        const key = `${row[invPartNumIndex]}-${row[invColorIdIndex]}`;
+        const imgUrl = row[invImgUrlIndex];
+
+        // Extraire l'element_id de l'URL (ex: "4496989.jpg" -> "4496989")
+        if (imgUrl && typeof imgUrl === "string") {
+          const elementIdMatch = imgUrl.match(/\/elements\/(\d+)\.jpg$/);
+          if (elementIdMatch) {
+            const elementId = elementIdMatch[1];
+            usedElementIds.add(elementId);
+            inventoryElementIds.set(key, elementId);
+          }
+        }
+      }
+    }
 
     elementsCache = new Map();
+    // Map temporaire pour stocker les entrées avec leurs informations complètes
+    const tempEntries = new Map<
+      string,
+      {
+        elementId: string;
+        hasDesignId: boolean;
+        hasMatchingDesignId: boolean;
+        numericId: number;
+        isUsedInInventory: boolean;
+      }
+    >();
 
-    for (let i = 1; i < rows.length; i++) {
-      const row = rows[i];
+    for (let i = 1; i < elementsRows.length; i++) {
+      const row = elementsRows[i];
       if (row.length > Math.max(elementIdIndex, partNumIndex, colorIdIndex)) {
         const key = `${row[partNumIndex]}-${row[colorIdIndex]}`;
-        elementsCache.set(key, row[elementIdIndex]);
+        const partNum = row[partNumIndex];
+        const elementId = row[elementIdIndex];
+        const designId = designIdIndex >= 0 ? row[designIdIndex] : "";
+        const hasDesignId = Boolean(designId && designId.trim() !== "");
+        const hasMatchingDesignId = designId.trim() === partNum; // NOUVEAU: design_id correspond au part_num
+        const numericId = parseInt(elementId, 10);
+        const isUsedInInventory = usedElementIds.has(elementId);
+
+        const existingEntry = tempEntries.get(key);
+
+        if (!existingEntry) {
+          // Première entrée pour cette clé
+          tempEntries.set(key, {
+            elementId,
+            hasDesignId,
+            hasMatchingDesignId,
+            numericId,
+            isUsedInInventory,
+          });
+        } else {
+          // Logique de priorité LEGO officielle (Pick-a-Brick) :
+          // 1. PRIORITÉ ABSOLUE : design_id = part_num (ex: 6357797 pour 3024-78)
+          // 2. Sinon, element_id utilisé dans les fichiers inventory_parts (1 et 2)
+          // 3. Sinon, celui avec design_id quelconque
+          // 4. Sinon, le plus petit numericId
+          const shouldReplace =
+            (hasMatchingDesignId && !existingEntry.hasMatchingDesignId) || // PRIORITÉ 1: design_id = part_num
+            (hasMatchingDesignId === existingEntry.hasMatchingDesignId &&
+              isUsedInInventory &&
+              !existingEntry.isUsedInInventory) || // PRIORITÉ 2: utilisé dans inventory
+            (hasMatchingDesignId === existingEntry.hasMatchingDesignId &&
+              isUsedInInventory === existingEntry.isUsedInInventory &&
+              hasDesignId &&
+              !existingEntry.hasDesignId) || // PRIORITÉ 3: design_id quelconque
+            (hasMatchingDesignId === existingEntry.hasMatchingDesignId &&
+              isUsedInInventory === existingEntry.isUsedInInventory &&
+              hasDesignId === existingEntry.hasDesignId &&
+              numericId < existingEntry.numericId); // PRIORITÉ 4: plus petit numericId
+
+          if (shouldReplace) {
+            tempEntries.set(key, {
+              elementId,
+              hasDesignId,
+              hasMatchingDesignId,
+              numericId,
+              isUsedInInventory,
+            });
+          }
+        }
       }
+    }
+
+    // Transférer les résultats finaux dans le cache
+    for (const [key, entry] of tempEntries) {
+      elementsCache.set(key, entry.elementId);
     }
 
     return elementsCache;
@@ -230,9 +362,6 @@ export const getLocalColorPalette = async (
     const partInventory = inventoryParts.get(partNum) || [];
 
     if (partInventory.length === 0) {
-      console.warn(
-        `⚠️ Aucune couleur trouvée pour la pièce ${partNum} dans inventory_parts.csv`
-      );
       return [];
     }
 
@@ -243,8 +372,12 @@ export const getLocalColorPalette = async (
         .map((item) => item.color_id)
     );
 
-    // Convertir en format LegoColor
+    // Convertir en format LegoColor avec filtrage
     const legoColors: LegoColor[] = [];
+
+    // Calculer la fenêtre glissante de 5 ans
+    const currentYear = new Date().getFullYear();
+    const minYear = currentYear - 5;
 
     for (const colorId of uniqueColorIds) {
       const colorData = colors.get(colorId);
@@ -255,9 +388,12 @@ export const getLocalColorPalette = async (
           continue;
         }
 
+        // Filtrer les couleurs discontinuées (fenêtre glissante de 5 ans)
+        if (colorData.y2 && colorData.y2 < minYear) {
+          continue;
+        }
+
         legoColors.push(colorData);
-      } else {
-        console.warn(`⚠️ Couleur ${colorId} non trouvée dans colors.csv`);
       }
     }
 
@@ -267,7 +403,7 @@ export const getLocalColorPalette = async (
     return legoColors;
   } catch (error) {
     console.error(
-      "❌ Erreur lors de la récupération de la palette locale:",
+      "Erreur lors de la récupération de la palette locale:",
       error
     );
     throw error;
@@ -328,6 +464,7 @@ export const getLocalElementId = async (
  * @param items Liste des pièces avec couleurs
  * @returns Promise avec un map des element_ids par pièce/couleur
  */
+
 export const getLocalBulkElementIds = async (
   items: Array<{ partNum: string; colorId: number }>
 ): Promise<Map<string, string>> => {
@@ -415,12 +552,18 @@ export const getTechnicConnectorColors = async (): Promise<LegoColor[]> => {
 };
 
 /**
- * Vide le cache des données CSV (utile pour forcer un rechargement)
+ * Vide tous les caches CSV pour forcer un rechargement
  */
 export const clearCSVCache = (): void => {
-  colorsCache = null;
   inventoryPartsCache = null;
   elementsCache = null;
+};
+
+/**
+ * Vide spécifiquement le cache des couleurs pour forcer un rechargement complet
+ */
+export const clearColorsCache = (): void => {
+  colorsCache = null;
 };
 
 /**
