@@ -149,17 +149,21 @@ export const DownloadCard: React.FC<DownloadCardProps> = ({
     URL.revokeObjectURL(url);
   };
 
-  const downloadBricklinkXML = () => {
+  const downloadBricklinkXML = async () => {
     if (!bom) return;
 
-    const xmlContent = generateBricklinkXML(bom);
-    const blob = new Blob([xmlContent], { type: "application/xml" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.download = `bricklink-inventory-${Date.now()}.xml`;
-    link.href = url;
-    link.click();
-    URL.revokeObjectURL(url);
+    try {
+      const xmlContent = await generateBricklinkXML(bom);
+      const blob = new Blob([xmlContent], { type: "application/xml" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.download = `bricklink-inventory-${Date.now()}.xml`;
+      link.href = url;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Erreur lors de la génération du XML BrickLink:', error);
+    }
   };
 
   const downloadPABCSV = async () => {

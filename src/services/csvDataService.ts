@@ -5,6 +5,25 @@ import type { LegoColor } from "@/types";
  * Fournit un accès rapide et fiable aux données de couleurs et pièces
  */
 
+/**
+ * Convertit une couleur RGB hex en format [r, g, b]
+ */
+const hexToRgbArray = (hex: string): [number, number, number] => {
+  // Assurer que le hex commence par #
+  if (!hex.startsWith("#")) {
+    hex = "#" + hex;
+  }
+
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result
+    ? [
+        parseInt(result[1], 16),
+        parseInt(result[2], 16),
+        parseInt(result[3], 16),
+      ]
+    : [0, 0, 0];
+};
+
 interface CSVInventoryPart {
   inventory_id: number;
   part_num: string;
@@ -17,10 +36,45 @@ interface CSVInventoryPart {
 let colorsCache: Map<number, LegoColor> | null = null;
 let inventoryPartsCache: Map<string, CSVInventoryPart[]> | null = null;
 let elementsCache: Map<string, string> | null = null; // (part_num-color_id) -> element_id
+let colorMappingCache: Map<number, number> | null = null; // Rebrickable ID -> BrickLink ID
 
 // Fonction pour vider le cache des elements
 export const clearElementsCache = (): void => {
   elementsCache = null;
+};
+
+// Fonction pour vider le cache de mapping des couleurs
+export const clearColorMappingCache = (): void => {
+  colorMappingCache = null;
+};
+
+/**
+ * Parse une ligne CSV en gérant les guillemets et les virgules imbriquées
+ * @param line Ligne CSV à parser
+ * @returns Array des colonnes
+ */
+const parseCSVLine = (line: string): string[] => {
+  const columns: string[] = [];
+  let current = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+
+    if (char === '"') {
+      inQuotes = !inQuotes;
+    } else if (char === "," && !inQuotes) {
+      columns.push(current.trim());
+      current = "";
+    } else {
+      current += char;
+    }
+  }
+
+  // Ajouter la dernière colonne
+  columns.push(current.trim());
+
+  return columns;
 };
 
 /**
@@ -30,10 +84,68 @@ export const clearAllCaches = (): void => {
   colorsCache = null;
   inventoryPartsCache = null;
   elementsCache = null;
+  colorMappingCache = null;
+};
+
+// Alias pour la compatibilité
+export const clearCSVCache = clearAllCaches;
+
+/**
+ * Charge et parse le fichier colors_mapping.csv (données complètes de Rebrickable)
+ * @returns Promise avec un Map des mappings Rebrickable ID -> BrickLink ID
+ */
+export const loadColorMapping = async (): Promise<Map<number, number>> => {
+  if (colorMappingCache) {
+    return colorMappingCache;
+  }
+
+  try {
+    const response = await fetch("/data/colors_mapping.csv");
+    if (!response.ok) {
+      throw new Error(`Erreur HTTP: ${response.status}`);
+    }
+    const csvText = await response.text();
+    const lines = csvText.split("\n");
+
+    colorMappingCache = new Map<number, number>();
+
+    // Ignorer la première ligne (en-têtes)
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+
+      // Parser CSV avec gestion des guillemets
+      const columns = parseCSVLine(line);
+      if (columns.length < 11) continue; // Vérifier qu'on a assez de colonnes
+
+      const rebrickableId = parseInt(columns[2], 10); // Colonne ID (décalée à cause de la colonne Img)
+      const bricklinkColumn = columns[11]; // Colonne BrickLink (décalée)
+
+      if (isNaN(rebrickableId) || !bricklinkColumn) continue;
+
+      // Parser la colonne BrickLink pour extraire l'ID
+      // Format: "85 ['Dark Bluish Gray']"
+      const bricklinkMatch = bricklinkColumn.match(/^(\d+)\s*\[/);
+      if (bricklinkMatch) {
+        const bricklinkId = parseInt(bricklinkMatch[1], 10);
+        if (!isNaN(bricklinkId)) {
+          colorMappingCache.set(rebrickableId, bricklinkId);
+        }
+      }
+    }
+
+    // Mapping des couleurs chargé silencieusement
+    return colorMappingCache;
+  } catch (error) {
+    console.error("Erreur lors du chargement du mapping des couleurs:", error);
+    // Retourner un mapping vide en cas d'erreur
+    colorMappingCache = new Map<number, number>();
+    return colorMappingCache;
+  }
 };
 
 /**
- * Charge et parse les fichiers colors.csv (principal + splittés)
+ * Charge et parse le fichier colors_mapping.csv (données complètes de Rebrickable)
  */
 export const loadColors = async (): Promise<Map<number, LegoColor>> => {
   if (colorsCache) {
@@ -41,53 +153,62 @@ export const loadColors = async (): Promise<Map<number, LegoColor>> => {
   }
 
   try {
-    const rows = await loadProjectCSVFiles("colors.csv");
-    const headers = rows[0].map((h) => h.trim());
-    const idIndex = headers.indexOf("id");
-    const nameIndex = headers.indexOf("name");
-    const rgbIndex = headers.indexOf("rgb");
-    const isTransIndex = headers.indexOf("is_trans");
-    const y1Index = headers.indexOf("y1");
-    const y2Index = headers.indexOf("y2");
+    const response = await fetch("/data/colors_mapping.csv");
+    if (!response.ok) {
+      throw new Error(`Erreur HTTP: ${response.status}`);
+    }
+    const csvText = await response.text();
+    const lines = csvText.split("\n");
 
     colorsCache = new Map();
 
-    for (let i = 1; i < rows.length; i++) {
-      const row = rows[i].map((cell) => cell.trim()); // Trim chaque cellule
-      if (row.length > Math.max(idIndex, nameIndex, rgbIndex, isTransIndex)) {
-        const colorId = parseInt(row[idIndex], 10);
-        const colorName = row[nameIndex];
-        const hex = row[rgbIndex].startsWith("#")
-          ? row[rgbIndex]
-          : `#${row[rgbIndex]}`;
-        const rgbArray = hexToRgbArray(row[rgbIndex]);
-
-        // Parsing correct pour y1 et y2
-        const y1 =
-          y1Index >= 0 && row[y1Index] && row[y1Index] !== ""
-            ? parseInt(row[y1Index], 10)
-            : undefined;
-        const y2 =
-          y2Index >= 0 && row[y2Index] && row[y2Index] !== ""
-            ? parseInt(row[y2Index], 10)
-            : undefined;
-
-        const color: LegoColor = {
-          id: colorId,
-          name: colorName,
-          hex: hex,
-          rgb: rgbArray,
-          y1: y1,
-          y2: y2,
-        };
-
-        colorsCache.set(colorId, color);
+    // Ignorer la première ligne (en-têtes)
+    // Format: Img,ID,Name,RGB,Num Parts,Num Sets,First Year,Last Year,LEGO,LDraw,BrickLink,BrickOwl
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) {
+        continue;
       }
+
+      // Parser CSV avec gestion des guillemets
+      const columns = parseCSVLine(line);
+      if (columns.length < 5) {
+        continue; // Vérifier qu'on a au moins ID, Name, RGB
+      }
+
+      const colorId = parseInt(columns[2], 10); // Colonne ID (décalée à cause de la colonne Img)
+      const colorName = columns[3]; // Colonne Name
+      const rgbHex = columns[4]; // Colonne RGB
+      const firstYear = columns[7] ? parseInt(columns[7], 10) : undefined; // Colonne First Year
+      const lastYear = columns[8] ? parseInt(columns[8], 10) : undefined; // Colonne Last Year
+
+      if (isNaN(colorId) || !colorName || !rgbHex) {
+        continue;
+      }
+
+      // Convertir RGB hex en format avec #
+      const hex = rgbHex.startsWith("#") ? rgbHex : `#${rgbHex}`;
+      const rgbArray = hexToRgbArray(rgbHex);
+
+      const color: LegoColor = {
+        id: colorId,
+        name: colorName,
+        hex: hex,
+        rgb: rgbArray,
+        y1: firstYear,
+        y2: lastYear,
+      };
+
+      colorsCache.set(colorId, color);
     }
 
+    // Couleurs chargées silencieusement
     return colorsCache;
   } catch (error) {
-    console.error("Erreur lors du chargement des couleurs:", error);
+    console.error(
+      "Erreur lors du chargement des couleurs depuis colors_mapping.csv:",
+      error
+    );
     throw error;
   }
 };
@@ -325,25 +446,6 @@ export const loadElements = async (): Promise<Map<string, string>> => {
 };
 
 /**
- * Convertit une couleur RGB hex en format [r, g, b]
- */
-const hexToRgbArray = (hex: string): [number, number, number] => {
-  // Assurer que le hex commence par #
-  if (!hex.startsWith("#")) {
-    hex = "#" + hex;
-  }
-
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  return result
-    ? [
-        parseInt(result[1], 16),
-        parseInt(result[2], 16),
-        parseInt(result[3], 16),
-      ]
-    : [0, 0, 0];
-};
-
-/**
  * Récupère les couleurs disponibles pour une pièce donnée depuis les CSV locaux
  * @param partNum Numéro de la pièce (ex: '3024')
  * @returns Promise avec la liste des couleurs disponibles
@@ -362,7 +464,12 @@ export const getLocalColorPalette = async (
     const partInventory = inventoryParts.get(partNum) || [];
 
     if (partInventory.length === 0) {
-      return [];
+      // Si aucune pièce spécifique n'est trouvée, retourner toutes les couleurs disponibles
+      const allColors = Array.from(colors.values());
+      // Utilisation de toutes les couleurs disponibles
+      return allColors
+        .filter((color) => !color.name.startsWith("Trans-"))
+        .slice(0, 50); // Exclure les transparentes et limiter
     }
 
     // Créer un Set pour éviter les doublons de couleurs
@@ -551,13 +658,7 @@ export const getTechnicConnectorColors = async (): Promise<LegoColor[]> => {
   }
 };
 
-/**
- * Vide tous les caches CSV pour forcer un rechargement
- */
-export const clearCSVCache = (): void => {
-  inventoryPartsCache = null;
-  elementsCache = null;
-};
+// clearCSVCache est maintenant défini comme alias de clearAllCaches plus haut dans le fichier
 
 /**
  * Vide spécifiquement le cache des couleurs pour forcer un rechargement complet

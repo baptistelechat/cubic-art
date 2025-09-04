@@ -4,7 +4,25 @@ import type {
   LegoColor,
   MosaicResult,
 } from "@/types";
-import { getLocalBulkElementIds, getLocalElementId } from "./csvDataService";
+import { getLocalBulkElementIds, getLocalElementId, loadColorMapping } from "./csvDataService";
+
+// Cache pour le mapping des couleurs
+let colorMappingData: Map<number, number> | null = null;
+
+/**
+ * Mappe les color_ids de Rebrickable vers les color_ids de BrickLink
+ * @param rebrickableColorId ID de couleur Rebrickable
+ * @returns Promise avec l'ID de couleur BrickLink correspondant
+ */
+const mapRebrickableColorToBrickLink = async (rebrickableColorId: number): Promise<number> => {
+  // Charger le mapping si pas encore fait
+  if (!colorMappingData) {
+    colorMappingData = await loadColorMapping();
+  }
+  
+  // Retourner l'ID BrickLink correspondant ou l'ID original si pas trouvé
+  return colorMappingData.get(rebrickableColorId) || rebrickableColorId;
+};
 
 /**
  * Génère une BOM (Bill of Materials) à partir d'un résultat de mosaïque
@@ -160,12 +178,33 @@ export const generatePickABrickCSV = (bom: BillOfMaterials): string => {
 /**
  * Génère un XML BrickLink à partir d'une BOM
  * @param bom Bill of Materials
- * @returns Contenu XML pour BrickLink Wanted List
+ * @returns Promise avec le contenu XML pour BrickLink Wanted List
  */
-export const generateBricklinkXML = (bom: BillOfMaterials): string => {
+export const generateBricklinkXML = async (bom: BillOfMaterials): Promise<string> => {
   let xml = "<INVENTORY>";
 
-  bom.items.forEach((item) => {
+  // Regrouper les items par combinaison part_num/color_id
+  const groupedItems = new Map<string, { part_num: string; color_id: number; quantity: number }>();
+  
+  // Traiter chaque item de manière asynchrone
+  for (const item of bom.items) {
+    const bricklinkColorId = await mapRebrickableColorToBrickLink(item.color_id);
+    const key = `${item.part_num}-${bricklinkColorId}`;
+    const existing = groupedItems.get(key);
+    
+    if (existing) {
+      existing.quantity += item.quantity;
+    } else {
+      groupedItems.set(key, {
+        part_num: item.part_num,
+        color_id: bricklinkColorId,
+        quantity: item.quantity
+      });
+    }
+  }
+
+  // Générer le XML avec les items regroupés
+  groupedItems.forEach((item) => {
     xml += "<ITEM>";
     xml += "<ITEMTYPE>P</ITEMTYPE>";
     xml += `<ITEMID>${item.part_num}</ITEMID>`;
@@ -182,32 +221,53 @@ export const generateBricklinkXML = (bom: BillOfMaterials): string => {
  * Génère un XML BrickLink à partir d'une liste de pièces et palette de couleurs
  * @param piecesList Liste des pièces avec quantités
  * @param colorPalette Palette de couleurs LEGO
- * @returns Contenu XML pour BrickLink Wanted List
+ * @returns Promise avec le contenu XML pour BrickLink Wanted List
  */
-export const generateBricklinkXMLFromPieces = (
+export const generateBricklinkXMLFromPieces = async (
   piecesList: Record<string, number>,
   colorPalette: LegoColor[]
-): string => {
+): Promise<string> => {
   let xml = "<INVENTORY>";
 
-  Object.entries(piecesList)
-    .filter(
-      ([key]) =>
-        !key.includes("Plaque de base Technic") && !key.includes("Connecteur")
-    )
-    .forEach(([colorInfo, quantity]) => {
-      const colorHex = colorInfo.match(/\(([^)]+)\)/)?.[1] || "#000000";
-      const legoColor = colorPalette.find((c) => c.hex === colorHex);
+  // Regrouper les items par combinaison part_num/color_id
+  const groupedItems = new Map<string, { part_num: string; color_id: number; quantity: number }>();
 
-      if (legoColor) {
-        xml += "<ITEM>";
-        xml += "<ITEMTYPE>P</ITEMTYPE>";
-        xml += "<ITEMID>3024</ITEMID>"; // Pièce 1x1
-        xml += `<COLOR>${legoColor.id}</COLOR>`;
-        xml += `<MINQTY>${quantity}</MINQTY>`;
-        xml += "</ITEM>";
+  // Traiter chaque pièce de manière asynchrone
+  const filteredEntries = Object.entries(piecesList).filter(
+    ([key]) =>
+      !key.includes("Plaque de base Technic") && !key.includes("Connecteur")
+  );
+  
+  for (const [colorInfo, quantity] of filteredEntries) {
+    const colorHex = colorInfo.match(/\(([^)]+)\)/)?.[1] || "#000000";
+    const legoColor = colorPalette.find((c) => c.hex === colorHex);
+
+    if (legoColor) {
+      const bricklinkColorId = await mapRebrickableColorToBrickLink(legoColor.id);
+      const key = `3024-${bricklinkColorId}`; // Pièce 1x1
+      const existing = groupedItems.get(key);
+      
+      if (existing) {
+        existing.quantity += quantity;
+      } else {
+        groupedItems.set(key, {
+          part_num: "3024",
+          color_id: bricklinkColorId,
+          quantity: quantity
+        });
       }
-    });
+    }
+  }
+
+  // Générer le XML avec les items regroupés
+  groupedItems.forEach((item) => {
+    xml += "<ITEM>";
+    xml += "<ITEMTYPE>P</ITEMTYPE>";
+    xml += `<ITEMID>${item.part_num}</ITEMID>`;
+    xml += `<COLOR>${item.color_id}</COLOR>`;
+    xml += `<MINQTY>${item.quantity}</MINQTY>`;
+    xml += "</ITEM>";
+  });
 
   xml += "</INVENTORY>";
   return xml;

@@ -11,9 +11,10 @@ DOWNLOAD_LIST = [
     "https://cdn.rebrickable.com/media/downloads/inventory_parts.csv.zip"
 ]
 
-# Le dossier de travail sera le dossier où se trouve ce script
+# Le dossier de travail sera public/data depuis la racine du projet
 SCRIPT_DIR = Path(__file__).resolve().parent
-WORK_DIR = SCRIPT_DIR
+PROJECT_ROOT = SCRIPT_DIR.parent  # Remonte d'un niveau depuis scripts/
+WORK_DIR = PROJECT_ROOT / "public" / "data"
 MAX_SIZE = 100 * 1024 * 1024  # 100 Mo
 
 # --- FONCTIONS ---
@@ -95,7 +96,7 @@ def main():
                     file_path = os.path.join(root, file)
                     parts = split_file(file_path)
                     for p in parts:
-                        move_with_overwrite(p, WORK_DIR)  # directement dans le dossier du script
+                        move_with_overwrite(p, WORK_DIR)  # dans public/data/
 
         # Nettoyage
         shutil.rmtree(extract_dir)
