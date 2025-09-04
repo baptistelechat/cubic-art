@@ -7,6 +7,7 @@ import {
 import { createTechnicPlateColor } from "@/utils/defaultConfig";
 import type { LegoColor } from "@/types";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 interface TechnicPlate16x16Props {
   color: LegoColor;
@@ -55,7 +56,9 @@ export const TechnicPlate16x16 = ({
         const technicColor = await createTechnicPlateColor(color);
         setPlateColor(technicColor);
       } catch (error) {
-        console.error("Erreur lors du chargement de la couleur Technic:", error);
+        toast.error("Erreur lors du chargement de la couleur Technic", {
+          description: error instanceof Error ? error.message : "Impossible de charger la couleur de la plaque Technic"
+        });
         // En cas d'erreur, utiliser la couleur d'origine
         setPlateColor(color);
       }

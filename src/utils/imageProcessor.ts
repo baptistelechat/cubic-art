@@ -1,10 +1,11 @@
+import { findClosestColor } from "@/services/colorPaletteService";
 import type {
   LegoColor,
   MosaicConfig,
   MosaicImageData,
   MosaicResult,
 } from "@/types";
-import { findClosestColor } from "@/services/colorPaletteService";
+import { toast } from "sonner";
 
 // Fonction de génération d'UUID compatible avec HTTP (alternative à crypto.randomUUID)
 function generateUUID(): string {
@@ -78,7 +79,10 @@ function calculateModularElements(gridWidth: number, gridHeight: number) {
 export function getModularConfiguration(gridWidth: number, gridHeight: number) {
   // Validation des dimensions supportées
   const supportedSizes = [16, 32, 48, 64];
-  if (!supportedSizes.includes(gridWidth) || !supportedSizes.includes(gridHeight)) {
+  if (
+    !supportedSizes.includes(gridWidth) ||
+    !supportedSizes.includes(gridHeight)
+  ) {
     throw new Error(
       `Dimensions non supportées: ${gridWidth}x${gridHeight}. Dimensions supportées: ${supportedSizes.join(
         ", "
@@ -113,17 +117,13 @@ export function getModularConfiguration(gridWidth: number, gridHeight: number) {
 }
 // ================================================
 
-
-
 // Trouve la couleur LEGO la plus proche dans une palette donnée
 function findClosestLegoColor(
-  rgb: [number, number, number], 
+  rgb: [number, number, number],
   palette: LegoColor[]
 ): LegoColor {
   return findClosestColor(rgb, palette);
 }
-
-
 
 // Redimensionne l'image selon les dimensions de grille configurées avec recadrage adaptatif
 function resizeImageToGrid(
@@ -305,14 +305,16 @@ export async function processImageToMosaic(
   const startTime = performance.now();
 
   // Fonction interne pour traiter l'image une fois chargée
-  const processLoadedImage = async (img: HTMLImageElement): Promise<MosaicResult> => {
+  const processLoadedImage = async (
+    img: HTMLImageElement
+  ): Promise<MosaicResult> => {
     // Récupérer la palette de couleurs appropriée
     let colorPalette = colorPaletteOverride || config.colorPalette;
-    
-    if (colorPalette && colorPalette.length > 0) {
-    
-    } else {
-      console.warn('Aucune palette de couleurs fournie, utilisation de la palette par défaut');
+
+    if (!colorPalette || colorPalette.length === 0) {
+      toast.warning("Aucune palette de couleurs fournie", {
+        description: "Utilisation de la palette par défaut",
+      });
       colorPalette = config.colorPalette || [];
     }
     // Calcul des constantes selon les dimensions configurées
@@ -322,7 +324,10 @@ export async function processImageToMosaic(
     const technicBricksWidth = Math.ceil(gridWidth / TECHNIC_BASEPLATE_SIZE);
     const technicBricksHeight = Math.ceil(gridHeight / TECHNIC_BASEPLATE_SIZE);
     const totalTechnicBricks = technicBricksWidth * technicBricksHeight;
-    const connectorsNeeded = calculateConnectorsNeeded(technicBricksWidth, technicBricksHeight);
+    const connectorsNeeded = calculateConnectorsNeeded(
+      technicBricksWidth,
+      technicBricksHeight
+    );
 
     // 1. Redimensionnement selon les dimensions configurées
     const resizedImageData = resizeImageToGrid(img, gridWidth, gridHeight);
@@ -385,11 +390,11 @@ export async function processImageToMosaic(
 
     img.onload = () => {
       processLoadedImage(img)
-        .then(result => {
+        .then((result) => {
           URL.revokeObjectURL(url);
           resolve(result);
         })
-        .catch(error => {
+        .catch((error) => {
           URL.revokeObjectURL(url);
           reject(error);
         });

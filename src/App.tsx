@@ -1,29 +1,35 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { useEffect } from 'react';
-import { Navbar } from '@/components/Navbar';
-import { Footer } from '@/components/Footer';
-import { ScrollToTop } from '@/components/ScrollToTop';
-import { HomePage } from '@/pages/HomePage';
-import { GeneratorPage } from '@/pages/GeneratorPage';
-import { GalleryPage } from '@/pages/GalleryPage';
-import { AboutPage } from '@/pages/AboutPage';
-import { ContactPage } from '@/pages/ContactPage';
-import { useColorStore } from '@/hooks/useColorStore';
-import { clearCSVCache } from '@/services/csvDataService';
-import './App.css';
+import { Footer } from "@/components/Footer";
+import { Navbar } from "@/components/Navbar";
+import { ScrollToTop } from "@/components/ScrollToTop";
+import { Toaster } from "@/components/ui/sonner";
+import { useColorStore } from "@/hooks/useColorStore";
+import { AboutPage } from "@/pages/AboutPage";
+import { ContactPage } from "@/pages/ContactPage";
+import { GalleryPage } from "@/pages/GalleryPage";
+import { GeneratorPage } from "@/pages/GeneratorPage";
+import { HomePage } from "@/pages/HomePage";
+import { clearCSVCache } from "@/services/csvDataService";
+import { useEffect } from "react";
+import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
+import { toast } from "sonner";
+import "./App.css";
 
 function App() {
-  const preloadCommonPalettes = useColorStore(state => state.preloadCommonPalettes);
-  const clearCache = useColorStore(state => state.clearCache);
+  const preloadCommonPalettes = useColorStore(
+    (state) => state.preloadCommonPalettes
+  );
+  const clearCache = useColorStore((state) => state.clearCache);
 
   // Vider tous les caches et pré-charger les palettes au démarrage de l'app
   useEffect(() => {
     // Forcer le rechargement complet des données
     clearCSVCache();
     clearCache();
-    
-    preloadCommonPalettes().catch(error => {
-      console.error('❌ Erreur lors du pré-chargement des palettes:', error);
+
+    preloadCommonPalettes().catch((error) => {
+      toast.error("Erreur lors du pré-chargement des palettes", {
+        description: error.message || "Une erreur inattendue s'est produite",
+      });
     });
   }, [preloadCommonPalettes, clearCache]);
 
@@ -42,6 +48,7 @@ function App() {
           </Routes>
         </main>
         <Footer />
+        <Toaster position="bottom-right" richColors />
       </div>
     </Router>
   );

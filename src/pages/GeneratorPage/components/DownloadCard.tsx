@@ -8,6 +8,7 @@ import {
 import type { BillOfMaterials, MosaicConfig, MosaicResult } from "@/types";
 import { Download, Package, ToyBrick } from "lucide-react";
 import React, { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
 
 interface DownloadCardProps {
   mosaicResult: MosaicResult | null;
@@ -51,7 +52,9 @@ export const DownloadCard: React.FC<DownloadCardProps> = ({
       const generatedBom = await generateBOM(mosaicResult, true);
       setBom(generatedBom);
     } catch (error) {
-      console.error("Erreur lors de la génération de la BOM:", error);
+      toast.error("Erreur lors de la génération de la BOM", {
+        description: error instanceof Error ? error.message : "Impossible de générer la liste des pièces"
+      });
     } finally {
       setIsGeneratingBom(false);
     }
@@ -162,7 +165,9 @@ export const DownloadCard: React.FC<DownloadCardProps> = ({
       link.click();
       URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('Erreur lors de la génération du XML BrickLink:', error);
+      toast.error('Erreur lors de la génération du XML BrickLink', {
+        description: error instanceof Error ? error.message : 'Impossible de générer le fichier BrickLink'
+      });
     }
   };
 
@@ -211,7 +216,7 @@ export const DownloadCard: React.FC<DownloadCardProps> = ({
         </h3>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 text-left">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Colonne gauche - Section Images */}
           <div>
             <h4 className="text-sm font-medium text-gray-700 mb-3">Images</h4>

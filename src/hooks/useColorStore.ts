@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { LegoColor } from '@/types';
 import { getLocalColorPalette } from '@/services/csvDataService';
+import { toast } from 'sonner';
 
 interface ColorStore {
   // État
@@ -83,7 +84,9 @@ export const useColorStore = create<ColorStore>((set, get) => ({
       
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
-      console.error(`❌ Erreur lors du chargement de ${partNum}:`, errorMessage);
+      toast.error(`Erreur lors du chargement de ${partNum}`, {
+        description: errorMessage
+      });
       
       // Retirer du loading et définir l'erreur
       set((state) => {
@@ -120,7 +123,9 @@ export const useColorStore = create<ColorStore>((set, get) => ({
       
     
     } catch (error) {
-      console.error('❌ Erreur lors du pré-chargement:', error);
+      toast.error('Erreur lors du pré-chargement des palettes', {
+        description: error instanceof Error ? error.message : 'Une erreur inattendue s\'est produite'
+      });
     }
   },
 

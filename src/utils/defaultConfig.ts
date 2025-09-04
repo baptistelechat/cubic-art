@@ -1,5 +1,6 @@
 import type { LegoColor, MosaicConfig } from "@/types";
 import { getTechnicPlateColors } from "@/services/csvDataService";
+import { toast } from "sonner";
 
 // Configuration par défaut de la mosaïque utilisant les données CSV locales
 export const DEFAULT_MOSAIC_CONFIG: MosaicConfig = {
@@ -40,7 +41,9 @@ export const createTechnicPlateColor = async (
     // Si aucune correspondance, retourner la première couleur disponible (généralement Black)
     return availableColors[0] || originalColor;
   } catch (error) {
-    console.error("Erreur lors de la récupération de la couleur Technic:", error);
+    toast.error("Erreur lors de la récupération de la couleur Technic", {
+      description: error instanceof Error ? error.message : "Impossible de charger les couleurs Technic"
+    });
     // En cas d'erreur, retourner la couleur d'origine
     return originalColor;
   }

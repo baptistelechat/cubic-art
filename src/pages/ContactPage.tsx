@@ -144,7 +144,7 @@ export function ContactPage() {
               <CardContent className="flex-1">
                 <form
                   onSubmit={handleSubmit}
-                  className="flex flex-col flex-1 space-y-6 text-left"
+                  className="flex flex-col flex-1 space-y-6"
                 >
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
@@ -242,7 +242,7 @@ export function ContactPage() {
                 </h3>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4 text-left">
+                <div className="space-y-4">
                   <a
                     href="https://x.com/baptiste_lechat"
                     target="_blank"

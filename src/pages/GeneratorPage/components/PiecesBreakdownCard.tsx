@@ -13,6 +13,7 @@ import { getTechnicPlateColors } from "@/services/csvDataService";
 import type { LegoColor, MosaicConfig, MosaicResult } from "@/types";
 import { Euro, Palette, Settings, ToyBrick, TrendingUp } from "lucide-react";
 import React, { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
 
 interface PiecesBreakdownCardProps {
   mosaicResult: MosaicResult;
@@ -48,7 +49,9 @@ export const PiecesBreakdownCard: React.FC<PiecesBreakdownCardProps> = ({
         const colors = await getTechnicPlateColors();
         setTechnicColors(colors);
       } catch (error) {
-        console.error("Erreur lors du chargement des couleurs Technic:", error);
+        toast.error("Erreur lors du chargement des couleurs Technic", {
+          description: error instanceof Error ? error.message : "Impossible de charger les couleurs des plaques Technic"
+        });
         // Couleur par défaut en cas d'erreur
         setTechnicColors([
           {
@@ -84,7 +87,9 @@ export const PiecesBreakdownCard: React.FC<PiecesBreakdownCardProps> = ({
       const generatedBom = await generateBOM(mosaicResult, true);
       setBomDisplay(formatBOMForDisplay(generatedBom));
     } catch (error) {
-      console.error("Erreur lors de la génération de la BOM:", error);
+      toast.error("Erreur lors de la génération de la BOM", {
+        description: error instanceof Error ? error.message : "Impossible de générer la liste des pièces"
+      });
     } finally {
       setIsGeneratingBom(false);
     }
@@ -118,7 +123,7 @@ export const PiecesBreakdownCard: React.FC<PiecesBreakdownCardProps> = ({
           {/* Section Estimation des coûts */}
           {bomDisplay?.estimatedCost && (
             <AccordionItem value="cost-estimation">
-              <AccordionTrigger className="text-left hover:no-underline">
+              <AccordionTrigger className="hover:no-underline">
                 <div className="flex items-center space-x-2">
                   <Euro className="size-4 text-green-600" />
                   <span className="font-medium">Estimation des coûts</span>
@@ -223,7 +228,7 @@ export const PiecesBreakdownCard: React.FC<PiecesBreakdownCardProps> = ({
           )}
           {/* Section Pièces 1x1 par couleur */}
           <AccordionItem value="plates-1x1">
-            <AccordionTrigger className="text-left hover:no-underline">
+            <AccordionTrigger className="hover:no-underline">
               <div className="flex items-center space-x-2">
                 <ToyBrick className="size-4 text-gray-600" />
                 <span className="font-medium">Pièces 1x1</span>
@@ -366,7 +371,7 @@ export const PiecesBreakdownCard: React.FC<PiecesBreakdownCardProps> = ({
 
           {/* Section Éléments techniques */}
           <AccordionItem value="technical-elements">
-            <AccordionTrigger className="text-left hover:no-underline">
+            <AccordionTrigger className="hover:no-underline">
               <div className="flex items-center space-x-2">
                 <Settings className="size-4 text-gray-600" />
                 <span className="font-medium">Éléments Technic</span>

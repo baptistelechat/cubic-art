@@ -5,6 +5,7 @@ import type {
   MosaicResult,
 } from "@/types";
 import { getLocalBulkElementIds, getLocalElementId, loadColorMapping } from "./csvDataService";
+import { toast } from "sonner";
 
 // Cache pour le mapping des couleurs
 let colorMappingData: Map<number, number> | null = null;
@@ -67,9 +68,9 @@ export const generateBOM = async (
 
     // 4. Enrichir avec les prix si demandé (actuellement désactivé)
     if (includePricing) {
-      console.warn(
-        "Estimation des prix temporairement désactivée - aucune source de prix configurée"
-      );
+      toast.warning("Estimation des prix temporairement désactivée", {
+        description: "Aucune source de prix configurée"
+      });
       // TODO: Intégrer une source de prix externe si nécessaire
     }
 
@@ -98,7 +99,9 @@ export const generateBOM = async (
 
     return bom;
   } catch (error) {
-    console.error("Erreur lors de la génération de la BOM:", error);
+    toast.error("Erreur lors de la génération de la BOM", {
+      description: error instanceof Error ? error.message : "Une erreur inattendue s'est produite"
+    });
     throw error;
   }
 };
@@ -148,10 +151,9 @@ const enrichWithElementIds = async (bomItems: BOMItem[]): Promise<void> => {
       }
     });
   } catch (error) {
-    console.error(
-      "Erreur lors de l'enrichissement avec les element_ids:",
-      error
-    );
+    toast.error("Erreur lors de l'enrichissement avec les element_ids", {
+      description: error instanceof Error ? error.message : "Impossible de récupérer les éléments LEGO"
+    });
     // Ne pas faire échouer la génération BOM si les element_ids ne sont pas disponibles
   }
 };

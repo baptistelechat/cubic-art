@@ -1,4 +1,5 @@
 import type { LegoColor } from "@/types";
+import { toast } from "sonner";
 
 /**
  * Service pour gérer les données CSV locales LEGO
@@ -137,7 +138,9 @@ export const loadColorMapping = async (): Promise<Map<number, number>> => {
     // Mapping des couleurs chargé silencieusement
     return colorMappingCache;
   } catch (error) {
-    console.error("Erreur lors du chargement du mapping des couleurs:", error);
+    toast.error("Erreur lors du chargement du mapping des couleurs", {
+      description: error instanceof Error ? error.message : "Une erreur inattendue s'est produite"
+    });
     // Retourner un mapping vide en cas d'erreur
     colorMappingCache = new Map<number, number>();
     return colorMappingCache;
@@ -205,10 +208,9 @@ export const loadColors = async (): Promise<Map<number, LegoColor>> => {
     // Couleurs chargées silencieusement
     return colorsCache;
   } catch (error) {
-    console.error(
-      "Erreur lors du chargement des couleurs depuis colors_mapping.csv:",
-      error
-    );
+    toast.error("Erreur lors du chargement des couleurs", {
+      description: error instanceof Error ? error.message : "Impossible de charger colors_mapping.csv"
+    });
     throw error;
   }
 };
@@ -230,7 +232,9 @@ const loadProjectCSVFiles = async (fileName: string): Promise<string[][]> => {
 
     return rows;
   } catch (error) {
-    console.error(`Erreur lors du chargement du fichier ${fileName}:`, error);
+    toast.error(`Erreur lors du chargement du fichier ${fileName}`, {
+      description: error instanceof Error ? error.message : "Fichier inaccessible"
+    });
     throw error;
   }
 };
@@ -250,10 +254,9 @@ const loadInventoryPartsSplit = async (): Promise<string[][]> => {
 
     return [header, ...data1, ...data2];
   } catch (error) {
-    console.error(
-      "Erreur lors du chargement des fichiers inventory_parts splittés:",
-      error
-    );
+    toast.error("Erreur lors du chargement des fichiers inventory_parts", {
+      description: error instanceof Error ? error.message : "Impossible de fusionner les fichiers"
+    });
     throw error;
   }
 };
@@ -306,7 +309,9 @@ export const loadInventoryParts = async (): Promise<
 
     return inventoryPartsCache;
   } catch (error) {
-    console.error("Erreur lors du chargement des pièces d'inventaire:", error);
+    toast.error("Erreur lors du chargement des pièces d'inventaire", {
+      description: error instanceof Error ? error.message : "Données d'inventaire inaccessibles"
+    });
     throw error;
   }
 };
@@ -440,7 +445,9 @@ export const loadElements = async (): Promise<Map<string, string>> => {
 
     return elementsCache;
   } catch (error) {
-    console.error("Erreur lors du chargement des éléments:", error);
+    toast.error("Erreur lors du chargement des éléments", {
+      description: error instanceof Error ? error.message : "Données d'éléments inaccessibles"
+    });
     throw error;
   }
 };
@@ -509,10 +516,9 @@ export const getLocalColorPalette = async (
 
     return legoColors;
   } catch (error) {
-    console.error(
-      "Erreur lors de la récupération de la palette locale:",
-      error
-    );
+    toast.error("Erreur lors de la récupération de la palette locale", {
+      description: error instanceof Error ? error.message : "Impossible de charger la palette de couleurs"
+    });
     throw error;
   }
 };
@@ -535,10 +541,9 @@ export const getLocalColor = async (
 
     return colorData;
   } catch (error) {
-    console.error(
-      `❌ Erreur lors de la récupération de la couleur ${colorId}:`,
-      error
-    );
+    toast.error(`Erreur lors de la récupération de la couleur ${colorId}`, {
+      description: error instanceof Error ? error.message : "Couleur introuvable"
+    });
     return null;
   }
 };
@@ -558,10 +563,9 @@ export const getLocalElementId = async (
     const key = `${partNum}-${colorId}`;
     return elements.get(key) || null;
   } catch (error) {
-    console.error(
-      `❌ Erreur lors de la récupération de l'element_id pour ${partNum}-${colorId}:`,
-      error
-    );
+    toast.error(`Erreur lors de la récupération de l'element_id pour ${partNum}-${colorId}`, {
+      description: error instanceof Error ? error.message : "Element ID introuvable"
+    });
     return null;
   }
 };
@@ -590,10 +594,9 @@ export const getLocalBulkElementIds = async (
 
     return elementIdsMap;
   } catch (error) {
-    console.error(
-      "❌ Erreur lors de la récupération en lot des element_ids:",
-      error
-    );
+    toast.error("Erreur lors de la récupération en lot des element_ids", {
+      description: error instanceof Error ? error.message : "Impossible de charger les éléments en lot"
+    });
     return new Map();
   }
 };
@@ -612,10 +615,9 @@ export const getTechnicPlateColors = async (): Promise<LegoColor[]> => {
 
     return sortedColors;
   } catch (error) {
-    console.error(
-      "❌ Erreur lors de la récupération des couleurs de la plaque Technic:",
-      error
-    );
+    toast.error("Erreur lors de la récupération des couleurs de la plaque Technic", {
+      description: error instanceof Error ? error.message : "Impossible de charger les couleurs Technic"
+    });
     // Retourner une couleur par défaut en cas d'erreur
     return [
       {
@@ -642,10 +644,9 @@ export const getTechnicConnectorColors = async (): Promise<LegoColor[]> => {
 
     return sortedColors;
   } catch (error) {
-    console.error(
-      "❌ Erreur lors de la récupération des couleurs du connecteur Technic:",
-      error
-    );
+    toast.error("Erreur lors de la récupération des couleurs du connecteur Technic", {
+      description: error instanceof Error ? error.message : "Impossible de charger les couleurs du connecteur"
+    });
     // Retourner une couleur par défaut en cas d'erreur
     return [
       {

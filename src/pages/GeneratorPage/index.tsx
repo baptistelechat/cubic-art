@@ -17,6 +17,7 @@ import {
 } from "@/utils/imageProcessor";
 import { Palette } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
 import { ConfigurationCard } from "./components/ConfigurationCard";
 import { DownloadCard } from "./components/DownloadCard";
 import { PiecesBreakdownCard } from "./components/PiecesBreakdownCard";
@@ -78,17 +79,17 @@ export function GeneratorPage() {
   useEffect(() => {
     const loadColorPalette = async () => {
       try {
-    
-        
-
-        
         const palette = await loadPalette("3024");
         setCurrentPalette(palette);
         // Mettre à jour la config avec la nouvelle palette
         updateConfig({ colorPalette: palette });
-  
       } catch (error) {
-        console.error("❌ Erreur lors du chargement de la palette:", error);
+        toast.error("Erreur lors du chargement de la palette", {
+          description:
+            error instanceof Error
+              ? error.message
+              : "Impossible de charger la palette de couleurs",
+        });
         setCurrentPalette(config.colorPalette);
       }
     };
@@ -98,7 +99,12 @@ export function GeneratorPage() {
         const colors = await getTechnicPlateColors();
         setTechnicColors(colors);
       } catch (error) {
-        console.error("Erreur lors du chargement des couleurs Technic:", error);
+        toast.error("Erreur lors du chargement des couleurs Technic", {
+          description:
+            error instanceof Error
+              ? error.message
+              : "Impossible de charger les couleurs Technic",
+        });
       }
     };
 
@@ -107,10 +113,12 @@ export function GeneratorPage() {
         const colors = await getTechnicConnectorColors();
         setConnectorColors(colors);
       } catch (error) {
-        console.error(
-          "Erreur lors du chargement des couleurs des connecteurs:",
-          error
-        );
+        toast.error("Erreur lors du chargement des couleurs des connecteurs", {
+          description:
+            error instanceof Error
+              ? error.message
+              : "Impossible de charger les couleurs des connecteurs",
+        });
       }
     };
 
@@ -158,7 +166,12 @@ export function GeneratorPage() {
           stableSetMosaicResult(result);
           stableSetIsProcessing(false);
         } catch (error) {
-          console.error("Erreur lors de la régénération:", error);
+          toast.error("Erreur lors de la régénération", {
+            description:
+              error instanceof Error
+                ? error.message
+                : "Erreur lors de la régénération de la mosaïque",
+          });
           setError(
             "Erreur lors de la régénération de la mosaïque. Veuillez réessayer."
           );
@@ -244,7 +257,12 @@ export function GeneratorPage() {
       setMosaicResult(result);
       setIsProcessing(false);
     } catch (error) {
-      console.error("Erreur lors du traitement:", error);
+      toast.error("Erreur lors du traitement de l'image", {
+        description:
+          error instanceof Error
+            ? error.message
+            : "Veuillez réessayer avec une autre image",
+      });
       setError(
         "Erreur lors du traitement de l'image. Veuillez réessayer avec une autre image."
       );
@@ -301,7 +319,7 @@ export function GeneratorPage() {
                 </CardHeader>
                 <CardContent className="flex-1 overflow-y-auto space-y-6">
                   {/* Titre Pièce 1x1 #3024 */}
-                  <div className="flex items-end gap-2 text-left">
+                  <div className="flex items-end gap-2">
                     <p className="text-sm font-medium text-gray-900">
                       Pièce 1x1
                     </p>
@@ -323,7 +341,7 @@ export function GeneratorPage() {
                   </TooltipProvider>
 
                   {/* Titre Plaque de base 16x16 Technic */}
-                  <div className="flex items-end gap-2 text-left pt-4 border-t border-gray-200">
+                  <div className="flex items-end gap-2 pt-4 border-t border-gray-200">
                     <p className="text-sm font-medium text-gray-900">
                       Plaque de base 16x16 Technic
                     </p>
@@ -345,7 +363,7 @@ export function GeneratorPage() {
                   </TooltipProvider>
 
                   {/* Titre Connecteur Technic */}
-                  <div className="flex items-end gap-2 text-left pt-4 border-t border-gray-200">
+                  <div className="flex items-end gap-2 pt-4 border-t border-gray-200">
                     <p className="text-sm font-medium text-gray-900">
                       Connecteur Technic
                     </p>
@@ -369,8 +387,6 @@ export function GeneratorPage() {
               </Card>
             </div>
           </div>
-
-
 
           {/* Deuxième section : Résultats et actions */}
           <div className="space-y-6">

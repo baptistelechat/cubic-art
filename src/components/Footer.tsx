@@ -7,7 +7,7 @@ export function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Logo et description */}
-          <div className="space-y-4 text-left">
+          <div className="space-y-4">
             <div className="flex items-center space-x-2">
               <div className="w-6 h-6 bg-red-500 rounded-sm flex items-center justify-center">
                 <div className="w-3 h-3 bg-white rounded-sm"></div>
@@ -22,7 +22,7 @@ export function Footer() {
           </div>
 
           {/* Liens rapides */}
-          <div className="space-y-4 text-left">
+          <div className="space-y-4">
             <h3 className="text-lg font-semibold">Liens rapides</h3>
             <ul className="space-y-2 text-sm">
               <li>
@@ -61,7 +61,7 @@ export function Footer() {
           </div>
 
           {/* Informations techniques */}
-          <div className="space-y-4 text-left">
+          <div className="space-y-4">
             <h3 className="text-lg font-semibold">Spécifications</h3>
             <ul className="space-y-2 text-sm text-gray-400">
               <li>• Système modulaire LEGO Technic</li>

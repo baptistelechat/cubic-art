@@ -38,7 +38,7 @@ export const ConfigurationCard: React.FC<ConfigurationCardProps> = ({
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          <div className="space-y-4 text-left">
+          <div className="space-y-4">
             <label className="block text-sm font-medium text-gray-700">
               Dimensions de la mosaïque
             </label>
@@ -179,7 +179,7 @@ export const ConfigurationCard: React.FC<ConfigurationCardProps> = ({
                     size="md"
                     showTooltip={false}
                   />
-                  <div className="text-left">
+                  <div>
                     <div className="font-medium text-gray-900 text-sm">
                       Total Pièces 1x1
                     </div>
@@ -198,7 +198,7 @@ export const ConfigurationCard: React.FC<ConfigurationCardProps> = ({
             </div>
           </div>
 
-          <div className="text-left">
+          <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Couleur de remplacement de la transparence (Import PNG)
             </label>
@@ -282,7 +282,7 @@ export const ConfigurationCard: React.FC<ConfigurationCardProps> = ({
           </div>
 
           {/* Toggle pour la grille modulaire */}
-          <div className="text-left">
+          <div>
             <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
               <label htmlFor="showModuleGrid" className="flex-1 cursor-pointer">
                 <div

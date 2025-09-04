@@ -122,12 +122,12 @@ export function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-6">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 text-left">
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
                 Spécifications techniques
               </h2>
 
               <div className="space-y-4">
-                <div className="flex items-start space-x-3 text-left">
+                <div className="flex items-start space-x-3">
                   <div className="w-2 h-2 bg-red-500 rounded-full mt-2"></div>
                   <div>
                     <h3 className="font-semibold text-gray-900">
@@ -139,7 +139,7 @@ export function HomePage() {
                   </div>
                 </div>
 
-                <div className="flex items-start space-x-3 text-left">
+                <div className="flex items-start space-x-3">
                   <div className="w-2 h-2 bg-purple-500 rounded-full mt-2"></div>
                   <div>
                     <h3 className="font-semibold text-gray-900">
@@ -151,7 +151,7 @@ export function HomePage() {
                   </div>
                 </div>
                 
-                <div className="flex items-start space-x-3 text-left">
+                <div className="flex items-start space-x-3">
                   <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
                   <div>
                     <h3 className="font-semibold text-gray-900">
@@ -163,7 +163,7 @@ export function HomePage() {
                   </div>
                 </div>
 
-                <div className="flex items-start space-x-3 text-left">
+                <div className="flex items-start space-x-3">
                   <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
                   <div>
                     <h3 className="font-semibold text-gray-900">
@@ -175,7 +175,7 @@ export function HomePage() {
                   </div>
                 </div>
 
-                <div className="flex items-start space-x-3 text-left">
+                <div className="flex items-start space-x-3">
                   <div className="w-2 h-2 bg-yellow-500 rounded-full mt-2"></div>
                   <div>
                     <h3 className="font-semibold text-gray-900">
@@ -242,7 +242,7 @@ export function HomePage() {
           </Link>
         </div>
       </section>
-      
+
       
     </div>
   );
