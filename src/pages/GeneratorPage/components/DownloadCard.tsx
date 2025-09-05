@@ -1,11 +1,21 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import {
   generateBricklinkXMLFromPieces,
   generatePABCSV,
   generatePABJSON,
 } from "@/services/bomGenerator";
 import type { MosaicConfig, MosaicResult } from "@/types";
-import { Download, Package, ToyBrick } from "lucide-react";
+import { Copy, Download, Package, ToyBrick } from "lucide-react";
 import React, { useState } from "react";
 import { toast } from "sonner";
 
@@ -35,12 +45,40 @@ function generateSVG(result: MosaicResult): string {
   return svg;
 }
 
+// Fonction pour formater le XML avec indentation
+function formatXML(xml: string): string {
+  const PADDING = '  '; // 2 espaces pour l'indentation
+  const reg = /(>)(<)(\/*)/g;
+  let pad = 0;
+
+  xml = xml.replace(reg, '$1\r\n$2$3');
+
+  return xml.split('\r\n').map((node) => {
+    let indent = 0;
+    if (node.match(/.+<\/\w[^>]*>$/)) {
+      indent = 0;
+    } else if (node.match(/^<\/\w/) && pad > 0) {
+      pad -= 1;
+    } else if (node.match(/^<\w[^>]*[^/]>.*$/)) {
+      indent = 1;
+    } else {
+      indent = 0;
+    }
+
+    pad += indent;
+    return PADDING.repeat(pad - indent) + node;
+  }).join('\r\n');
+}
+
 export const DownloadCard: React.FC<DownloadCardProps> = ({
   mosaicResult,
   mosaicCanvas,
   config,
 }) => {
   const [isGeneratingBom, setIsGeneratingBom] = useState(false);
+  const [xmlContent, setXmlContent] = useState<string>("");
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
   const downloadPNG = () => {
     if (!mosaicCanvas) return;
 
@@ -127,22 +165,18 @@ export const DownloadCard: React.FC<DownloadCardProps> = ({
     URL.revokeObjectURL(url);
   };
 
-  const downloadBricklinkXML = async () => {
+  const generateBricklinkXMLForDisplay = async () => {
     if (!mosaicResult || !mosaicResult.piecesList) return;
 
     setIsGeneratingBom(true);
     try {
-      const xmlContent = await generateBricklinkXMLFromPieces(
+      const xml = await generateBricklinkXMLFromPieces(
         mosaicResult.piecesList,
         config.colorPalette
       );
-      const blob = new Blob([xmlContent], { type: "application/xml" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.download = `bricklink-inventory-${Date.now()}.xml`;
-      link.href = url;
-      link.click();
-      URL.revokeObjectURL(url);
+      const formattedXml = formatXML(xml);
+      setXmlContent(formattedXml);
+      setIsDialogOpen(true);
     } catch (error) {
       toast.error("Erreur lors de la génération du XML BrickLink", {
         description:
@@ -152,6 +186,25 @@ export const DownloadCard: React.FC<DownloadCardProps> = ({
       });
     } finally {
       setIsGeneratingBom(false);
+    }
+  };
+
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(xmlContent);
+      setIsCopied(true);
+      toast.success("Code XML copié dans le presse-papier !");
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch {
+      toast.error("Erreur lors de la copie", {
+        description: "Impossible de copier le code dans le presse-papier",
+      });
+    }
+  };
+
+  const handleTextareaClick = () => {
+    if (xmlContent) {
+      copyToClipboard();
     }
   };
 
@@ -272,16 +325,55 @@ export const DownloadCard: React.FC<DownloadCardProps> = ({
                 {isGeneratingBom ? "Génération..." : "Pick a Brick"}
                 <span className="absolute bottom-1 right-2 text-xs">JSON</span>
               </button>
-              <button
-                onClick={downloadBricklinkXML}
-                disabled={!mosaicResult}
-                className="w-full bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2 relative"
-                title="Télécharger le XML pour BrickLink (seul format supporté)"
-              >
-                <Package size={20} />
-                {isGeneratingBom ? "Génération..." : "BrickLink"}
-                <span className="absolute bottom-1 right-2 text-xs">XML</span>
-              </button>
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger asChild>
+                  <button
+                    onClick={generateBricklinkXMLForDisplay}
+                    disabled={!mosaicResult}
+                    className="w-full bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2 relative"
+                    title="Afficher le code XML pour BrickLink"
+                  >
+                    <Package size={20} />
+                    {isGeneratingBom ? "Génération..." : "BrickLink"}
+                    <span className="absolute bottom-1 right-2 text-xs">XML</span>
+                  </button>
+                </DialogTrigger>
+                <DialogContent className="max-w-4xl max-h-[80vh]">
+                  <DialogHeader>
+                    <DialogTitle>Code XML BrickLink</DialogTitle>
+                    <DialogDescription>
+                      Cliquez sur la zone de texte pour copier automatiquement le code dans le presse-papier, puis collez-le dans BrickLink pour importer votre inventaire.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <Textarea
+                      value={xmlContent}
+                      readOnly
+                      onClick={handleTextareaClick}
+                      autoFocus={false}
+                      className="w-full h-96 font-mono text-sm bg-gray-50 resize-none overflow-auto cursor-pointer hover:bg-gray-100 transition-colors duration-200"
+                      placeholder="Le code XML apparaîtra ici..."
+                      title="Cliquez pour copier dans le presse-papier"
+                    />
+                    <div className="flex justify-end space-x-2">
+                      <Button
+                        variant="outline"
+                        onClick={() => setIsDialogOpen(false)}
+                      >
+                        Fermer
+                      </Button>
+                      <Button
+                        onClick={copyToClipboard}
+                        disabled={!xmlContent}
+                        className="flex items-center space-x-2"
+                      >
+                        <Copy size={16} />
+                        <span>{isCopied ? "Copié !" : "Copier"}</span>
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
         </div>

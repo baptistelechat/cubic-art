@@ -79,12 +79,12 @@ export const generateBOM = async (
     await enrichWithElementIds(bomItems);
 
     // 4. Enrichir avec les prix si demandé (actuellement désactivé)
-    if (includePricing) {
-      toast.warning("Estimation des prix temporairement désactivée", {
-        description: "Aucune source de prix configurée",
-      });
-      // TODO: Intégrer une source de prix externe si nécessaire
-    }
+    // if (includePricing) {
+    //   toast.warning("Estimation des prix temporairement désactivée", {
+    //     description: "Aucune source de prix configurée",
+    //   });
+    //   // TODO: Intégrer une source de prix externe si nécessaire
+    // }
 
     // 5. Calculer le coût total estimé
     const totalEstimatedCost = includePricing
