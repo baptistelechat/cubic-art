@@ -1,13 +1,12 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
-  generateBOM,
-  generateBricklinkXML,
+  generateBricklinkXMLFromPieces,
   generatePABCSV,
   generatePABJSON,
 } from "@/services/bomGenerator";
-import type { BillOfMaterials, MosaicConfig, MosaicResult } from "@/types";
+import type { MosaicConfig, MosaicResult } from "@/types";
 import { Download, Package, ToyBrick } from "lucide-react";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useState } from "react";
 import { toast } from "sonner";
 
 interface DownloadCardProps {
@@ -41,31 +40,7 @@ export const DownloadCard: React.FC<DownloadCardProps> = ({
   mosaicCanvas,
   config,
 }) => {
-  const [bom, setBom] = useState<BillOfMaterials | null>(null);
   const [isGeneratingBom, setIsGeneratingBom] = useState(false);
-
-  const generateBOMAsync = useCallback(async () => {
-    if (!mosaicResult) return;
-
-    setIsGeneratingBom(true);
-    try {
-      const generatedBom = await generateBOM(mosaicResult, true);
-      setBom(generatedBom);
-    } catch (error) {
-      toast.error("Erreur lors de la génération de la BOM", {
-        description: error instanceof Error ? error.message : "Impossible de générer la liste des pièces"
-      });
-    } finally {
-      setIsGeneratingBom(false);
-    }
-  }, [mosaicResult]);
-
-  // Générer la BOM automatiquement quand la mosaïque change
-  useEffect(() => {
-    if (mosaicResult) {
-      generateBOMAsync();
-    }
-  }, [mosaicResult, generateBOMAsync]);
   const downloadPNG = () => {
     if (!mosaicCanvas) return;
 
@@ -153,10 +128,14 @@ export const DownloadCard: React.FC<DownloadCardProps> = ({
   };
 
   const downloadBricklinkXML = async () => {
-    if (!bom) return;
+    if (!mosaicResult || !mosaicResult.piecesList) return;
 
+    setIsGeneratingBom(true);
     try {
-      const xmlContent = await generateBricklinkXML(bom);
+      const xmlContent = await generateBricklinkXMLFromPieces(
+        mosaicResult.piecesList,
+        config.colorPalette
+      );
       const blob = new Blob([xmlContent], { type: "application/xml" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
@@ -165,42 +144,57 @@ export const DownloadCard: React.FC<DownloadCardProps> = ({
       link.click();
       URL.revokeObjectURL(url);
     } catch (error) {
-      toast.error('Erreur lors de la génération du XML BrickLink', {
-        description: error instanceof Error ? error.message : 'Impossible de générer le fichier BrickLink'
+      toast.error("Erreur lors de la génération du XML BrickLink", {
+        description:
+          error instanceof Error
+            ? error.message
+            : "Impossible de générer le fichier BrickLink",
       });
+    } finally {
+      setIsGeneratingBom(false);
     }
   };
 
   const downloadPABCSV = async () => {
     if (!mosaicResult || !mosaicResult.piecesList) return;
 
-    const csvContent = await generatePABCSV(
-      mosaicResult.piecesList,
-      config.colorPalette
-    );
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.download = `pab-list-${new Date().toISOString().slice(0, 10)}.csv`;
-    link.href = url;
-    link.click();
-    URL.revokeObjectURL(url);
+    setIsGeneratingBom(true);
+    try {
+      const csvContent = await generatePABCSV(
+        mosaicResult.piecesList,
+        config.colorPalette
+      );
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.download = `pab-list-${new Date().toISOString().slice(0, 10)}.csv`;
+      link.href = url;
+      link.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setIsGeneratingBom(false);
+    }
   };
 
   const downloadPABJSON = async () => {
     if (!mosaicResult || !mosaicResult.piecesList) return;
 
-    const jsonContent = await generatePABJSON(
-      mosaicResult.piecesList,
-      config.colorPalette
-    );
-    const blob = new Blob([jsonContent], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.download = `pab-list-${new Date().toISOString().slice(0, 10)}.json`;
-    link.href = url;
-    link.click();
-    URL.revokeObjectURL(url);
+    setIsGeneratingBom(true);
+    try {
+      const jsonContent = await generatePABJSON(
+        mosaicResult.piecesList,
+        config.colorPalette
+      );
+      const blob = new Blob([jsonContent], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.download = `pab-list-${new Date().toISOString().slice(0, 10)}.json`;
+      link.href = url;
+      link.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setIsGeneratingBom(false);
+    }
   };
 
   if (!mosaicResult || !mosaicCanvas) {
@@ -280,12 +274,12 @@ export const DownloadCard: React.FC<DownloadCardProps> = ({
               </button>
               <button
                 onClick={downloadBricklinkXML}
-                disabled={!bom || isGeneratingBom}
+                disabled={!mosaicResult}
                 className="w-full bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2 relative"
                 title="Télécharger le XML pour BrickLink (seul format supporté)"
               >
                 <Package size={20} />
-                <span>{isGeneratingBom ? "Génération..." : "BrickLink"}</span>
+                {isGeneratingBom ? "Génération..." : "BrickLink"}
                 <span className="absolute bottom-1 right-2 text-xs">XML</span>
               </button>
             </div>

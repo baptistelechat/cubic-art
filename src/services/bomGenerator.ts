@@ -4,8 +4,18 @@ import type {
   LegoColor,
   MosaicResult,
 } from "@/types";
-import { getLocalBulkElementIds, getLocalElementId, loadColorMapping } from "./csvDataService";
 import { toast } from "sonner";
+import {
+  getLocalBulkElementIds,
+  getLocalElementId,
+  loadColorMapping,
+} from "./csvDataService";
+
+// Constantes pour les références de pièces Technic
+// BrickLink utilise des références différentes de LEGO officiel
+const BRICKLINK_CONNECTOR_PART_NUM = "2780"; // Item No BrickLink pour connecteur
+const LEGO_CONNECTOR_ELEMENT_ID = "6279875"; // Element ID pour Pick-A-Brick
+const TECHNIC_BASEPLATE_PART_NUM = "65803"; // Plaque Technic 16x16
 
 // Cache pour le mapping des couleurs
 let colorMappingData: Map<number, number> | null = null;
@@ -15,12 +25,14 @@ let colorMappingData: Map<number, number> | null = null;
  * @param rebrickableColorId ID de couleur Rebrickable
  * @returns Promise avec l'ID de couleur BrickLink correspondant
  */
-const mapRebrickableColorToBrickLink = async (rebrickableColorId: number): Promise<number> => {
+const mapRebrickableColorToBrickLink = async (
+  rebrickableColorId: number
+): Promise<number> => {
   // Charger le mapping si pas encore fait
   if (!colorMappingData) {
     colorMappingData = await loadColorMapping();
   }
-  
+
   // Retourner l'ID BrickLink correspondant ou l'ID original si pas trouvé
   return colorMappingData.get(rebrickableColorId) || rebrickableColorId;
 };
@@ -69,7 +81,7 @@ export const generateBOM = async (
     // 4. Enrichir avec les prix si demandé (actuellement désactivé)
     if (includePricing) {
       toast.warning("Estimation des prix temporairement désactivée", {
-        description: "Aucune source de prix configurée"
+        description: "Aucune source de prix configurée",
       });
       // TODO: Intégrer une source de prix externe si nécessaire
     }
@@ -100,7 +112,10 @@ export const generateBOM = async (
     return bom;
   } catch (error) {
     toast.error("Erreur lors de la génération de la BOM", {
-      description: error instanceof Error ? error.message : "Une erreur inattendue s'est produite"
+      description:
+        error instanceof Error
+          ? error.message
+          : "Une erreur inattendue s'est produite",
     });
     throw error;
   }
@@ -152,7 +167,10 @@ const enrichWithElementIds = async (bomItems: BOMItem[]): Promise<void> => {
     });
   } catch (error) {
     toast.error("Erreur lors de l'enrichissement avec les element_ids", {
-      description: error instanceof Error ? error.message : "Impossible de récupérer les éléments LEGO"
+      description:
+        error instanceof Error
+          ? error.message
+          : "Impossible de récupérer les éléments LEGO",
     });
     // Ne pas faire échouer la génération BOM si les element_ids ne sont pas disponibles
   }
@@ -182,25 +200,32 @@ export const generatePickABrickCSV = (bom: BillOfMaterials): string => {
  * @param bom Bill of Materials
  * @returns Promise avec le contenu XML pour BrickLink Wanted List
  */
-export const generateBricklinkXML = async (bom: BillOfMaterials): Promise<string> => {
+export const generateBricklinkXML = async (
+  bom: BillOfMaterials
+): Promise<string> => {
   let xml = "<INVENTORY>";
 
   // Regrouper les items par combinaison part_num/color_id
-  const groupedItems = new Map<string, { part_num: string; color_id: number; quantity: number }>();
-  
+  const groupedItems = new Map<
+    string,
+    { part_num: string; color_id: number; quantity: number }
+  >();
+
   // Traiter chaque item de manière asynchrone
   for (const item of bom.items) {
-    const bricklinkColorId = await mapRebrickableColorToBrickLink(item.color_id);
+    const bricklinkColorId = await mapRebrickableColorToBrickLink(
+      item.color_id
+    );
     const key = `${item.part_num}-${bricklinkColorId}`;
     const existing = groupedItems.get(key);
-    
+
     if (existing) {
       existing.quantity += item.quantity;
     } else {
       groupedItems.set(key, {
         part_num: item.part_num,
         color_id: bricklinkColorId,
-        quantity: item.quantity
+        quantity: item.quantity,
       });
     }
   }
@@ -232,33 +257,70 @@ export const generateBricklinkXMLFromPieces = async (
   let xml = "<INVENTORY>";
 
   // Regrouper les items par combinaison part_num/color_id
-  const groupedItems = new Map<string, { part_num: string; color_id: number; quantity: number }>();
+  const groupedItems = new Map<
+    string,
+    { part_num: string; color_id: number; quantity: number }
+  >();
 
   // Traiter chaque pièce de manière asynchrone
   const filteredEntries = Object.entries(piecesList).filter(
     ([key]) =>
       !key.includes("Plaque de base Technic") && !key.includes("Connecteur")
   );
-  
+
   for (const [colorInfo, quantity] of filteredEntries) {
     const colorHex = colorInfo.match(/\(([^)]+)\)/)?.[1] || "#000000";
     const legoColor = colorPalette.find((c) => c.hex === colorHex);
 
     if (legoColor) {
-      const bricklinkColorId = await mapRebrickableColorToBrickLink(legoColor.id);
+      const bricklinkColorId = await mapRebrickableColorToBrickLink(
+        legoColor.id
+      );
       const key = `3024-${bricklinkColorId}`; // Pièce 1x1
       const existing = groupedItems.get(key);
-      
+
       if (existing) {
         existing.quantity += quantity;
       } else {
         groupedItems.set(key, {
           part_num: "3024",
           color_id: bricklinkColorId,
-          quantity: quantity
+          quantity: quantity,
         });
       }
     }
+  }
+
+  // Calculer la couleur noire BrickLink une seule fois pour les pièces Technic
+  const blackColorId = await mapRebrickableColorToBrickLink(0); // Noir = color_id 0 dans Rebrickable
+
+  // Ajouter les plaques Technic 16x16 noires - utiliser les quantités exactes de piecesList
+  const baseplateEntry = Object.entries(piecesList).find(([key]) =>
+    key.includes("Plaque de base Technic")
+  );
+  if (baseplateEntry) {
+    const baseplatesNeeded = baseplateEntry[1];
+
+    groupedItems.set(`${TECHNIC_BASEPLATE_PART_NUM}-${blackColorId}`, {
+      part_num: TECHNIC_BASEPLATE_PART_NUM, // "65803"
+      color_id: blackColorId,
+      quantity: baseplatesNeeded,
+    });
+  }
+
+  // Ajouter les connecteurs Technic noirs - utiliser les quantités exactes de piecesList
+  const connectorEntry = Object.entries(piecesList).find(([key]) =>
+    key.includes("Connecteur")
+  );
+  if (connectorEntry) {
+    const connectorsNeeded = connectorEntry[1];
+
+    // Utiliser la référence BrickLink (2780) au lieu de LEGO officiel (61332)
+    groupedItems.set(`${BRICKLINK_CONNECTOR_PART_NUM}-${blackColorId}`, {
+      part_num: BRICKLINK_CONNECTOR_PART_NUM, // "2780" pour BrickLink
+      color_id: blackColorId,
+      quantity: connectorsNeeded,
+    });
   }
 
   // Générer le XML avec les items regroupés
@@ -309,6 +371,34 @@ export const generatePABCSV = async (
     }
   }
 
+  // Ajouter les plaques Technic 16x16 noires - utiliser les quantités exactes de piecesList
+  const baseplateEntry = Object.entries(piecesList).find(([key]) =>
+    key.includes("Plaque de base Technic")
+  );
+  if (baseplateEntry) {
+    const baseplatesNeeded = baseplateEntry[1];
+
+    // Récupérer l'element_id pour la plaque Technic 16x16 noire
+    const baseplateElementId = await getLocalElementId(
+      TECHNIC_BASEPLATE_PART_NUM,
+      0
+    ); // Noir = color_id 0
+    if (baseplateElementId) {
+      csv += `${baseplateElementId},${baseplatesNeeded}\n`;
+    }
+  }
+
+  // Ajouter les connecteurs Technic noirs - utiliser les quantités exactes de piecesList
+  const connectorEntry = Object.entries(piecesList).find(([key]) =>
+    key.includes("Connecteur")
+  );
+  if (connectorEntry) {
+    const connectorsNeeded = connectorEntry[1];
+
+    // Utiliser l'element_id LEGO officiel pour Pick-A-Brick
+    csv += `${LEGO_CONNECTOR_ELEMENT_ID},${connectorsNeeded}\n`;
+  }
+
   return csv;
 };
 
@@ -344,6 +434,37 @@ export const generatePABJSON = async (
         items.push({ elementId, quantity });
       }
     }
+  }
+
+  // Ajouter les plaques Technic 16x16 noires - utiliser les quantités exactes de piecesList
+  const baseplateEntry = Object.entries(piecesList).find(([key]) =>
+    key.includes("Plaque de base Technic")
+  );
+  if (baseplateEntry) {
+    const baseplatesNeeded = baseplateEntry[1];
+
+    // Récupérer l'element_id pour la plaque Technic 16x16 noire
+    const baseplateElementId = await getLocalElementId(
+      TECHNIC_BASEPLATE_PART_NUM,
+      0
+    ); // Noir = color_id 0
+    if (baseplateElementId) {
+      items.push({ elementId: baseplateElementId, quantity: baseplatesNeeded });
+    }
+  }
+
+  // Ajouter les connecteurs Technic noirs - utiliser les quantités exactes de piecesList
+  const connectorEntry = Object.entries(piecesList).find(([key]) =>
+    key.includes("Connecteur")
+  );
+  if (connectorEntry) {
+    const connectorsNeeded = connectorEntry[1];
+
+    // Utiliser l'element_id LEGO officiel pour Pick-A-Brick
+    items.push({
+      elementId: LEGO_CONNECTOR_ELEMENT_ID,
+      quantity: connectorsNeeded,
+    });
   }
 
   return JSON.stringify(items, null, 2);
