@@ -248,11 +248,13 @@ export const generateBricklinkXML = async (
  * Génère un XML BrickLink à partir d'une liste de pièces et palette de couleurs
  * @param piecesList Liste des pièces avec quantités
  * @param colorPalette Palette de couleurs LEGO
+ * @param technicPlateColor Couleur sélectionnée pour les plaques Technic
  * @returns Promise avec le contenu XML pour BrickLink Wanted List
  */
 export const generateBricklinkXMLFromPieces = async (
   piecesList: Record<string, number>,
-  colorPalette: LegoColor[]
+  colorPalette: LegoColor[],
+  technicPlateColor?: LegoColor
 ): Promise<string> => {
   let xml = "<INVENTORY>";
 
@@ -291,19 +293,21 @@ export const generateBricklinkXMLFromPieces = async (
     }
   }
 
-  // Calculer la couleur noire BrickLink une seule fois pour les pièces Technic
-  const blackColorId = await mapRebrickableColorToBrickLink(0); // Noir = color_id 0 dans Rebrickable
+  // Calculer la couleur BrickLink pour les plaques Technic (utiliser la couleur sélectionnée ou noir par défaut)
+  const plateColorId = technicPlateColor 
+    ? await mapRebrickableColorToBrickLink(technicPlateColor.id)
+    : await mapRebrickableColorToBrickLink(0); // Noir par défaut
 
-  // Ajouter les plaques Technic 16x16 noires - utiliser les quantités exactes de piecesList
+  // Ajouter les plaques Technic 16x16 avec la couleur sélectionnée - utiliser les quantités exactes de piecesList
   const baseplateEntry = Object.entries(piecesList).find(([key]) =>
     key.includes("Plaque de base Technic")
   );
   if (baseplateEntry) {
     const baseplatesNeeded = baseplateEntry[1];
 
-    groupedItems.set(`${TECHNIC_BASEPLATE_PART_NUM}-${blackColorId}`, {
+    groupedItems.set(`${TECHNIC_BASEPLATE_PART_NUM}-${plateColorId}`, {
       part_num: TECHNIC_BASEPLATE_PART_NUM, // "65803"
-      color_id: blackColorId,
+      color_id: plateColorId,
       quantity: baseplatesNeeded,
     });
   }
@@ -314,6 +318,7 @@ export const generateBricklinkXMLFromPieces = async (
   );
   if (connectorEntry) {
     const connectorsNeeded = connectorEntry[1];
+    const blackColorId = await mapRebrickableColorToBrickLink(0); // Connecteurs toujours noirs
 
     // Utiliser la référence BrickLink (2780) au lieu de LEGO officiel (61332)
     groupedItems.set(`${BRICKLINK_CONNECTOR_PART_NUM}-${blackColorId}`, {
@@ -341,11 +346,13 @@ export const generateBricklinkXMLFromPieces = async (
  * Génère un CSV PAB (Pick-A-Brick) à partir d'une liste de pièces et palette de couleurs
  * @param piecesList Liste des pièces avec quantités
  * @param colorPalette Palette de couleurs LEGO
+ * @param technicPlateColor Couleur sélectionnée pour les plaques Technic
  * @returns Contenu CSV pour PAB au format elementId,quantity
  */
 export const generatePABCSV = async (
   piecesList: Record<string, number>,
-  colorPalette: LegoColor[]
+  colorPalette: LegoColor[],
+  technicPlateColor?: LegoColor
 ): Promise<string> => {
   let csv = "elementId,quantity\n";
 
@@ -371,18 +378,19 @@ export const generatePABCSV = async (
     }
   }
 
-  // Ajouter les plaques Technic 16x16 noires - utiliser les quantités exactes de piecesList
+  // Ajouter les plaques Technic 16x16 avec la couleur sélectionnée - utiliser les quantités exactes de piecesList
   const baseplateEntry = Object.entries(piecesList).find(([key]) =>
     key.includes("Plaque de base Technic")
   );
   if (baseplateEntry) {
     const baseplatesNeeded = baseplateEntry[1];
+    const plateColorId = technicPlateColor?.id || 0; // Utiliser la couleur sélectionnée ou noir par défaut
 
-    // Récupérer l'element_id pour la plaque Technic 16x16 noire
+    // Récupérer l'element_id pour la plaque Technic 16x16 avec la couleur sélectionnée
     const baseplateElementId = await getLocalElementId(
       TECHNIC_BASEPLATE_PART_NUM,
-      0
-    ); // Noir = color_id 0
+      plateColorId
+    );
     if (baseplateElementId) {
       csv += `${baseplateElementId},${baseplatesNeeded}\n`;
     }
@@ -406,11 +414,13 @@ export const generatePABCSV = async (
  * Génère un JSON PAB (Pick-A-Brick) à partir d'une liste de pièces et palette de couleurs
  * @param piecesList Liste des pièces avec quantités
  * @param colorPalette Palette de couleurs LEGO
+ * @param technicPlateColor Couleur sélectionnée pour les plaques Technic
  * @returns Contenu JSON pour PAB au format [{elementId, quantity}]
  */
 export const generatePABJSON = async (
   piecesList: Record<string, number>,
-  colorPalette: LegoColor[]
+  colorPalette: LegoColor[],
+  technicPlateColor?: LegoColor
 ): Promise<string> => {
   const items: Array<{ elementId: string; quantity: number }> = [];
 
@@ -436,18 +446,19 @@ export const generatePABJSON = async (
     }
   }
 
-  // Ajouter les plaques Technic 16x16 noires - utiliser les quantités exactes de piecesList
+  // Ajouter les plaques Technic 16x16 avec la couleur sélectionnée - utiliser les quantités exactes de piecesList
   const baseplateEntry = Object.entries(piecesList).find(([key]) =>
     key.includes("Plaque de base Technic")
   );
   if (baseplateEntry) {
     const baseplatesNeeded = baseplateEntry[1];
+    const plateColorId = technicPlateColor?.id || 0; // Utiliser la couleur sélectionnée ou noir par défaut
 
-    // Récupérer l'element_id pour la plaque Technic 16x16 noire
+    // Récupérer l'element_id pour la plaque Technic 16x16 avec la couleur sélectionnée
     const baseplateElementId = await getLocalElementId(
       TECHNIC_BASEPLATE_PART_NUM,
-      0
-    ); // Noir = color_id 0
+      plateColorId
+    );
     if (baseplateElementId) {
       items.push({ elementId: baseplateElementId, quantity: baseplatesNeeded });
     }

@@ -63,6 +63,14 @@ export function GeneratorPage() {
   const [backgroundColorForTransparency, setBackgroundColorForTransparency] =
     useState<LegoColor>(EMPTY_COLOR);
 
+  // État pour la couleur des plaques Technic 16x16
+  const [technicPlateColor, setTechnicPlateColor] = useState<LegoColor>({
+    id: 0,
+    name: "Black",
+    hex: "#05131D",
+    rgb: [5, 19, 29],
+  });
+
   // Mettre à jour la couleur de remplacement quand la palette est chargée
   useEffect(() => {
     if (config.colorPalette.length > 0) {
@@ -98,6 +106,10 @@ export function GeneratorPage() {
       try {
         const colors = await getTechnicPlateColors();
         setTechnicColors(colors);
+        // Initialiser la couleur des plaques Technic avec la première couleur disponible
+        if (colors.length > 0) {
+          setTechnicPlateColor(colors[0]);
+        }
       } catch (error) {
         toast.error("Erreur lors du chargement des couleurs Technic", {
           description:
@@ -304,6 +316,9 @@ export function GeneratorPage() {
                 setBackgroundColorForTransparency={
                   setBackgroundColorForTransparency
                 }
+                technicPlateColor={technicPlateColor}
+                setTechnicPlateColor={setTechnicPlateColor}
+                technicColors={technicColors}
                 EMPTY_COLOR={EMPTY_COLOR}
               />
             </div>
@@ -472,6 +487,7 @@ export function GeneratorPage() {
                       mosaicResult={mosaicResult}
                       mosaicCanvas={mosaicCanvas}
                       config={config}
+                      technicPlateColor={technicPlateColor}
                     />
                   </div>
 
@@ -480,6 +496,7 @@ export function GeneratorPage() {
                     <PiecesBreakdownCard
                       mosaicResult={mosaicResult}
                       config={config}
+                      technicPlateColor={technicPlateColor}
                     />
                   </div>
                 </div>

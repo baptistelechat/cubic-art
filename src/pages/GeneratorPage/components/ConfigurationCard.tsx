@@ -1,4 +1,5 @@
 import { LegoBrick } from "@/components/LegoBrick";
+import { TechnicPlate16x16 } from "@/components/TechnicPlate16x16";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import {
@@ -18,6 +19,9 @@ interface ConfigurationCardProps {
   updateConfig: (updates: Partial<MosaicConfig>) => void;
   backgroundColorForTransparency: LegoColor;
   setBackgroundColorForTransparency: (color: LegoColor) => void;
+  technicPlateColor: LegoColor;
+  setTechnicPlateColor: (color: LegoColor) => void;
+  technicColors: LegoColor[];
   EMPTY_COLOR: LegoColor;
 }
 
@@ -26,6 +30,9 @@ export const ConfigurationCard: React.FC<ConfigurationCardProps> = ({
   updateConfig,
   backgroundColorForTransparency,
   setBackgroundColorForTransparency,
+  technicPlateColor,
+  setTechnicPlateColor,
+  technicColors,
   EMPTY_COLOR,
 }) => {
   return (
@@ -196,6 +203,58 @@ export const ConfigurationCard: React.FC<ConfigurationCardProps> = ({
                 </div>
               </div>
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Couleur des plaques de base Technic 16x16
+            </label>
+            <Select
+              value={technicPlateColor?.id?.toString() || "0"}
+              onValueChange={(value) => {
+                const selectedColor = technicColors.find(
+                  (color) => color.id.toString() === value
+                );
+                if (selectedColor) {
+                  setTechnicPlateColor(selectedColor);
+                }
+              }}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue>
+                  <div className="flex items-center space-x-2">
+                    <TechnicPlate16x16
+                      color={technicPlateColor}
+                      size="sm"
+                      showTooltip={false}
+                    />
+                    <span>{technicPlateColor?.name}</span>
+                    <span className="text-xs text-gray-600">
+                      #{technicPlateColor?.id}
+                    </span>
+                  </div>
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent className="max-h-60 overflow-y-auto scroll-smooth overscroll-contain">
+                {technicColors
+                  .sort((a, b) => a.id - b.id)
+                  .map((color) => (
+                    <SelectItem key={color.id} value={color.id.toString()}>
+                      <div className="flex items-center space-x-2">
+                        <TechnicPlate16x16
+                          color={color}
+                          size="sm"
+                          showTooltip={false}
+                        />
+                        <span>{color.name}</span>
+                        <span className="text-xs text-gray-600">
+                          #{color.id}
+                        </span>
+                      </div>
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div>

@@ -14,7 +14,7 @@ import {
   generatePABCSV,
   generatePABJSON,
 } from "@/services/bomGenerator";
-import type { MosaicConfig, MosaicResult } from "@/types";
+import type { LegoColor, MosaicConfig, MosaicResult } from "@/types";
 import { Copy, Download, Package, ToyBrick } from "lucide-react";
 import React, { useState } from "react";
 import { toast } from "sonner";
@@ -23,6 +23,7 @@ interface DownloadCardProps {
   mosaicResult: MosaicResult | null;
   mosaicCanvas: HTMLCanvasElement | null;
   config: MosaicConfig;
+  technicPlateColor?: LegoColor;
 }
 
 // Fonction pour générer le SVG
@@ -74,6 +75,7 @@ export const DownloadCard: React.FC<DownloadCardProps> = ({
   mosaicResult,
   mosaicCanvas,
   config,
+  technicPlateColor,
 }) => {
   const [isGeneratingBom, setIsGeneratingBom] = useState(false);
   const [xmlContent, setXmlContent] = useState<string>("");
@@ -172,7 +174,8 @@ export const DownloadCard: React.FC<DownloadCardProps> = ({
     try {
       const xml = await generateBricklinkXMLFromPieces(
         mosaicResult.piecesList,
-        config.colorPalette
+        config.colorPalette,
+        technicPlateColor
       );
       const formattedXml = formatXML(xml);
       setXmlContent(formattedXml);
@@ -215,7 +218,8 @@ export const DownloadCard: React.FC<DownloadCardProps> = ({
     try {
       const csvContent = await generatePABCSV(
         mosaicResult.piecesList,
-        config.colorPalette
+        config.colorPalette,
+        technicPlateColor
       );
       const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
       const url = URL.createObjectURL(blob);
@@ -236,7 +240,8 @@ export const DownloadCard: React.FC<DownloadCardProps> = ({
     try {
       const jsonContent = await generatePABJSON(
         mosaicResult.piecesList,
-        config.colorPalette
+        config.colorPalette,
+        technicPlateColor
       );
       const blob = new Blob([jsonContent], { type: "application/json" });
       const url = URL.createObjectURL(blob);

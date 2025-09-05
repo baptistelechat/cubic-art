@@ -18,11 +18,13 @@ import { toast } from "sonner";
 interface PiecesBreakdownCardProps {
   mosaicResult: MosaicResult;
   config: MosaicConfig;
+  technicPlateColor: LegoColor;
 }
 
 export const PiecesBreakdownCard: React.FC<PiecesBreakdownCardProps> = ({
   mosaicResult,
   config,
+  technicPlateColor,
 }) => {
   const [isGeneratingBom, setIsGeneratingBom] = useState(false);
   const [bomDisplay, setBomDisplay] = useState<{
@@ -416,9 +418,9 @@ export const PiecesBreakdownCard: React.FC<PiecesBreakdownCardProps> = ({
                               showTooltip={false}
                             />
                           ) : (
-                            /* Plaque de base Technic - Couleur depuis CSV */
+                            /* Plaque de base Technic - Couleur sélectionnée */
                             <TechnicPlate16x16
-                              color={getDefaultTechnicColor()}
+                              color={technicPlateColor}
                               size="md"
                               showTooltip={false}
                             />
