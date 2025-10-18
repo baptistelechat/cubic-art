@@ -14,8 +14,9 @@ import {
   generatePABCSV,
   generatePABJSON,
 } from "@/services/bomGenerator";
+import { downloadInstructionsPDF } from "@/services/pdfInstructionsGenerator";
 import type { LegoColor, MosaicConfig, MosaicResult } from "@/types";
-import { Copy, Download, Package, ToyBrick } from "lucide-react";
+import { BookOpen, Copy, Download, Package, ToyBrick } from "lucide-react";
 import React, { useState } from "react";
 import { toast } from "sonner";
 
@@ -78,6 +79,7 @@ export const DownloadCard: React.FC<DownloadCardProps> = ({
   technicPlateColor,
 }) => {
   const [isGeneratingBom, setIsGeneratingBom] = useState(false);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [xmlContent, setXmlContent] = useState<string>("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
@@ -255,6 +257,27 @@ export const DownloadCard: React.FC<DownloadCardProps> = ({
     }
   };
 
+  const downloadInstructionsPDFHandler = async () => {
+    if (!mosaicResult) return;
+
+    setIsGeneratingPDF(true);
+    try {
+      await downloadInstructionsPDF(mosaicResult, config);
+      toast.success("Manuel d'instructions téléchargé avec succès !", {
+        description: "Le PDF contient toutes les étapes de construction modulaire",
+      });
+    } catch (error) {
+      toast.error("Erreur lors de la génération du manuel PDF", {
+        description:
+          error instanceof Error
+            ? error.message
+            : "Impossible de générer le manuel d'instructions",
+      });
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  };
+
   if (!mosaicResult || !mosaicCanvas) {
     return null;
   }
@@ -310,6 +333,16 @@ export const DownloadCard: React.FC<DownloadCardProps> = ({
               Commande de pièces
             </h4>
             <div className="flex flex-col gap-3">
+              <button
+                onClick={downloadInstructionsPDFHandler}
+                disabled={!mosaicResult}
+                className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2 relative w-full"
+                title="Télécharger le manuel d'instructions PDF"
+              >
+                <BookOpen size={20} />
+                {isGeneratingPDF ? "Génération..." : "Manuel PDF"}
+                <span className="absolute bottom-1 right-2 text-xs">A4</span>
+              </button>
               <button
                 onClick={downloadPABCSV}
                 disabled={!mosaicResult}
